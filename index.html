@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>JeepRadar // Florida Gulf Coast & Beyond</title>
+  
+  <!-- CDNs: Tailwind CSS, Leaflet Maps, Font Awesome Icons -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,400;0,600;0,700;1,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            jeep: {
+              olive: '#2d3829',
+              darkolive: '#1c2419',
+              lightolive: '#475841',
+              orange: '#f59e0b',
+              amber: '#d97706',
+              mud: '#453221',
+              metal: '#1e2420',
+              steel: '#0d110f'
+            }
+          },
+          fontFamily: {
+            tactical: ['"Chakra Petch"', 'sans-serif'],
+            sans: ['Inter', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #0b0f0d;
+      color: #e5e7eb;
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+    }
+    .tactical-font {
+      font-family: 'Chakra Petch', sans-serif;
+      letter-spacing: 0.05em;
+    }
+    .topo-grid {
+      background-image: 
+        radial-gradient(circle at 50% 50%, rgba(245, 158, 11, 0.05) 0%, transparent 60%),
+        linear-gradient(rgba(245, 158, 11, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(245, 158, 11, 0.03) 1px, transparent 1px);
+      background-size: 100% 100%, 32px 32px, 32px 32px;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #111612;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #2d3829;
+      border-radius: 3px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #f59e0b;
+    }
+    .leaflet-popup-content-wrapper {
+      background: #1a221b;
+      color: #f3f4f6;
+      border: 1px solid #f59e0b;
+      border-radius: 8px;
+    }
+    .leaflet-popup-tip {
+      background: #1a221b;
+      border: 1px solid #f59e0b;
+    }
+    .duck-badge {
+      animation: pulseDuck 2s infinite ease-in-out;
+    }
+    @keyframes pulseDuck {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
+  </style>
+</head>
+<body class="min-h-screen topo-grid flex flex-col selection:bg-jeep-orange selection:text-black">
+
+  <!-- TOP APP HEADER -->
+  <header class="bg-jeep-steel/95 border-b border-jeep-lightolive/40 backdrop-blur sticky top-0 z-50 px-3 sm:px-6 py-2.5">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      
+      <!-- Brand & 7-Slot Grille Logo -->
+      <div class="flex items-center gap-3">
+        <div class="bg-jeep-darkolive p-2 rounded border border-jeep-orange/50 flex items-center justify-center shadow-lg shadow-black/40">
+          <!-- 7-Slot Grille SVG -->
+          <svg class="w-8 h-6 text-jeep-orange fill-current" viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="30" r="9" stroke="#f59e0b" stroke-width="3" fill="#1c2419" />
+            <circle cx="88" cy="30" r="9" stroke="#f59e0b" stroke-width="3" fill="#1c2419" />
+            <rect x="27" y="15" width="5" height="30" rx="2.5" />
+            <rect x="36" y="15" width="5" height="30" rx="2.5" />
+            <rect x="45" y="15" width="5" height="30" rx="2.5" />
+            <rect x="54" y="15" width="5" height="30" rx="2.5" />
+            <rect x="63" y="15" width="5" height="30" rx="2.5" />
+            <rect x="72" y="15" width="5" height="30" rx="2.5" />
+            <rect x="81" y="15" width="5" height="30" rx="2.5" />
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="tactical-font text-xl sm:text-2xl font-bold tracking-wider text-white">JEEP<span class="text-jeep-orange">RADAR</span></span>
+            <span class="text-[10px] uppercase font-bold tracking-widest bg-jeep-orange text-black px-1.5 py-0.5 rounded">Gulf Edition</span>
+          </div>
+          <p class="text-xs text-gray-400 hidden sm:block">Pinellas • St. Pete • Tampa Bay • Florida Crawlers</p>
+        </div>
+      </div>
+
+      <!-- Quick Action Controls -->
+      <div class="flex items-center gap-2">
+        <button id="openShareModalBtn" class="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-semibold px-3 py-1.5 rounded text-xs sm:text-sm tactical-font transition-all shadow-md active:scale-95">
+          <i class="fa-solid fa-paper-plane"></i>
+          <span>Share with Crew</span>
+        </button>
+
+        <button id="openPostModalBtn" class="flex items-center gap-1.5 bg-jeep-darkolive hover:bg-jeep-olive text-gray-200 border border-jeep-lightolive/50 px-3 py-1.5 rounded text-xs sm:text-sm tactical-font transition active:scale-95">
+          <i class="fa-solid fa-plus text-jeep-orange"></i>
+          <span class="hidden md:inline">Post Rally</span>
+        </button>
+
+        <button id="syncFeedsBtn" title="Sync Facebook & Web Feeds" class="bg-jeep-darkolive hover:bg-jeep-olive text-gray-200 border border-jeep-lightolive/50 w-9 h-9 rounded flex items-center justify-center transition active:rotate-180 duration-300">
+          <i class="fa-solid fa-arrows-rotate text-jeep-orange text-sm"></i>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- TELEMETRY & RADIUS SEARCH DOCK -->
+  <section class="bg-jeep-metal/90 border-b border-jeep-lightolive/30 px-3 sm:px-6 py-3">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+      
+      <!-- Home Base & GPS Selector -->
+      <div class="flex items-center gap-2 flex-wrap">
+        <div class="flex items-center gap-2 bg-black/60 border border-jeep-lightolive/40 px-3 py-1.5 rounded text-xs">
+          <i class="fa-solid fa-location-crosshairs text-jeep-orange"></i>
+          <span class="text-gray-400 font-mono">BASE:</span>
+          <select id="baseLocationSelect" class="bg-transparent text-white font-semibold focus:outline-none cursor-pointer">
+            <option value="madeira" class="bg-jeep-steel text-white">Madeira Beach, FL (27.80°N, -82.80°W)</option>
+            <option value="stpete" class="bg-jeep-steel text-white">St. Pete Beach (Gulf Blvd)</option>
+            <option value="tampa" class="bg-jeep-steel text-white">Tampa Downtown (27.95°N, -82.45°W)</option>
+            <option value="clearwater" class="bg-jeep-steel text-white">Clearwater Beach Pier 60</option>
+            <option value="ocala" class="bg-jeep-steel text-white">Ocala National Forest / Hardrock</option>
+            <option value="custom" class="bg-jeep-steel text-white">Device GPS Coordinates</option>
+          </select>
+        </div>
+
+        <button id="useDeviceGpsBtn" class="bg-black/40 hover:bg-jeep-darkolive border border-jeep-lightolive/40 px-2.5 py-1.5 rounded text-xs text-gray-300 flex items-center gap-1 transition" title="Acquire Device GPS">
+          <i class="fa-solid fa-satellite-dish text-jeep-orange"></i>
+          <span class="hidden sm:inline">Use My GPS</span>
+        </button>
+      </div>
+
+      <!-- Search Radius Range Slider -->
+      <div class="flex items-center gap-4 bg-black/60 border border-jeep-lightolive/40 px-4 py-2 rounded-lg flex-1 max-w-lg">
+        <div class="flex items-center gap-2 whitespace-nowrap">
+          <i class="fa-solid fa-compass text-jeep-orange"></i>
+          <span class="tactical-font text-xs font-semibold uppercase text-gray-300">Radius:</span>
+          <span id="radiusValDisplay" class="font-mono text-sm font-bold text-jeep-orange min-w-[3.5rem]">50 mi</span>
+        </div>
+        <input 
+          id="radiusSlider" 
+          type="range" 
+          min="5" 
+          max="200" 
+          value="50" 
+          step="5" 
+          class="w-full h-1.5 bg-jeep-darkolive rounded-lg appearance-none cursor-pointer accent-amber-500"
+        />
+      </div>
+
+      <!-- Quick Group Filters -->
+      <div class="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 custom-scrollbar text-xs">
+        <button data-filter="all" class="filter-pill active bg-jeep-orange text-black font-semibold px-2.5 py-1 rounded whitespace-nowrap">All Sources</button>
+        <button data-filter="spb" class="filter-pill bg-black/50 text-gray-300 hover:text-white border border-jeep-lightolive/30 px-2.5 py-1 rounded whitespace-nowrap">SPB Jeepers</button>
+        <button data-filter="sunshine" class="filter-pill bg-black/50 text-gray-300 hover:text-white border border-jeep-lightolive/30 px-2.5 py-1 rounded whitespace-nowrap">Sunshine City</button>
+        <button data-filter="tbjc" class="filter-pill bg-black/50 text-gray-300 hover:text-white border border-jeep-lightolive/30 px-2.5 py-1 rounded whitespace-nowrap">Tampa Bay JC</button>
+        <button data-filter="trails" class="filter-pill bg-black/50 text-gray-300 hover:text-white border border-jeep-lightolive/30 px-2.5 py-1 rounded whitespace-nowrap">Trails / Parks</button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- MAIN DUAL-PANEL DASHBOARD -->
+  <main class="max-w-7xl mx-auto w-full p-3 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1">
+    
+    <!-- LEFT PANEL: EVENT FEED & LISTING (7 COLS) -->
+    <div class="lg:col-span-7 flex flex-col gap-4">
+      
+      <!-- Intel & Status Strip -->
+      <div class="flex items-center justify-between bg-jeep-steel/80 p-2.5 rounded border border-jeep-lightolive/30 text-xs">
+        <div class="flex items-center gap-2">
+          <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+          <span class="text-gray-300">Scanned Feeds: <strong class="text-white">Active (3 Local Clubs + 4 Trail Registries)</strong></span>
+        </div>
+        <div class="text-gray-400 font-mono">
+          Found: <span id="eventCountBadge" class="text-jeep-orange font-bold">0</span> Events in Zone
+        </div>
+      </div>
+
+      <!-- Events Container -->
+      <div id="eventsListContainer" class="flex flex-col gap-3 custom-scrollbar">
+        <!-- Rendered dynamically via JavaScript -->
+      </div>
+
+    </div>
+
+    <!-- RIGHT PANEL: INTERACTIVE TACTICAL MAP & CLUBS DIRECTORY (5 COLS) -->
+    <div class="lg:col-span-5 flex flex-col gap-4">
+      
+      <!-- Tactical Map View -->
+      <div class="bg-jeep-steel border border-jeep-lightolive/40 rounded-xl overflow-hidden shadow-2xl flex flex-col">
+        <div class="bg-jeep-darkolive/90 px-4 py-2 flex items-center justify-between border-b border-jeep-lightolive/30">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-crosshairs text-jeep-orange text-xs"></i>
+            <span class="tactical-font text-xs uppercase tracking-wider text-gray-200">Trail Recon Map</span>
+          </div>
+          <span class="text-[11px] text-gray-400 font-mono" id="mapCenterCoords">27.80° N, 82.80° W</span>
+        </div>
+        
+        <div id="radarMap" class="w-full h-80 sm:h-96 bg-[#111612]"></div>
+        
+        <div class="p-2.5 bg-black/40 text-[11px] text-gray-400 flex items-center justify-between border-t border-jeep-lightolive/20">
+          <span><i class="fa-solid fa-circle text-jeep-orange text-[9px] mr-1"></i>Yellow: Event Pin</span>
+          <span><i class="fa-solid fa-crosshairs text-blue-400 text-[9px] mr-1"></i>Blue: Your Location</span>
+          <span>Amber Circle: Range Horizon</span>
+        </div>
+      </div>
+
+      <!-- Monitored Sources & Scraper Intel Card -->
+      <div class="bg-jeep-steel/90 border border-jeep-lightolive/40 rounded-xl p-4 flex flex-col gap-3 shadow-lg">
+        <div class="flex items-center justify-between border-b border-jeep-lightolive/30 pb-2">
+          <div class="flex items-center gap-2">
+            <i class="fa-brands fa-facebook text-blue-400"></i>
+            <h3 class="tactical-font text-sm font-bold uppercase tracking-wider text-white">Monitored Florida Feeds</h3>
+          </div>
+          <span class="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-0.5 rounded font-mono">LIVE WATCH</span>
+        </div>
+
+        <div class="flex flex-col gap-2.5 text-xs">
+          <div class="flex items-center justify-between p-2 rounded bg-black/40 border border-jeep-lightolive/20">
+            <div>
+              <div class="font-bold text-gray-200">St. Pete Beach Jeepers</div>
+              <div class="text-[11px] text-gray-400">Public Group • Gulf Blvd convoys, sunset crawls</div>
+            </div>
+            <a href="https://www.facebook.com/search/groups/?q=st%20pete%20beach%20jeepers" target="_blank" class="text-jeep-orange hover:underline text-[11px]"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+          </div>
+
+          <div class="flex items-center justify-between p-2 rounded bg-black/40 border border-jeep-lightolive/20">
+            <div>
+              <div class="font-bold text-gray-200">Sunshine City Jeep Crew</div>
+              <div class="text-[11px] text-gray-400">St. Petersburg • Meets at Ferg's, Pier cruises</div>
+            </div>
+            <a href="https://www.facebook.com/search/groups/?q=sunshine%20city%20jeep%20crew" target="_blank" class="text-jeep-orange hover:underline text-[11px]"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+          </div>
+
+          <div class="flex items-center justify-between p-2 rounded bg-black/40 border border-jeep-lightolive/20">
+            <div>
+              <div class="font-bold text-gray-200">Tampa Bay Jeep Club (TBJC)</div>
+              <div class="text-[11px] text-gray-400">Tampa / Pinellas • Quaker Steak RTI ramp, Charity runs</div>
+            </div>
+            <a href="https://www.facebook.com/search/groups/?q=tampa%20bay%20jeep%20club" target="_blank" class="text-jeep-orange hover:underline text-[11px]"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+          </div>
+
+          <div class="flex items-center justify-between p-2 rounded bg-black/40 border border-jeep-lightolive/20">
+            <div>
+              <div class="font-bold text-gray-200">Citrus & Ocala 4x4 Public Lands</div>
+              <div class="text-[11px] text-gray-400">Holder Mine, Croom Motorcycle & Offroad Area, Hardrock</div>
+            </div>
+            <span class="text-emerald-400 font-mono text-[10px]">Open Trails</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- MODAL: MASTER "SHARE APP WITH CREW" (WITH PHONE SETUP INSTRUCTIONS) -->
+  <div id="shareModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-jeep-steel border border-jeep-orange/80 rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl relative flex flex-col gap-4">
+      
+      <!-- Close button -->
+      <button id="closeShareModalBtn" class="absolute top-4 right-4 text-gray-400 hover:text-white text-lg">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <!-- Modal Header -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-jeep-orange/20 border border-jeep-orange flex items-center justify-center text-jeep-orange">
+          <i class="fa-solid fa-paper-plane text-lg"></i>
+        </div>
+        <div>
+          <h2 class="tactical-font text-lg font-bold text-white uppercase tracking-wider">Share JeepRadar with Crew</h2>
+          <p class="text-xs text-gray-400">Send direct text message with phone setup instructions.</p>
+        </div>
+      </div>
+
+      <!-- Phone Number Direct SMS Dispatch -->
+      <div class="bg-black/50 border border-jeep-lightolive/40 p-3.5 rounded-xl flex flex-col gap-2">
+        <label class="text-xs font-semibold text-gray-300">Friend's Phone Number (Optional)</label>
+        <div class="flex gap-2">
+          <input 
+            id="targetPhoneInput" 
+            type="tel" 
+            placeholder="e.g. 727-555-0199 or leave blank"
+            class="flex-1 bg-jeep-darkolive/80 border border-jeep-lightolive/50 text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-jeep-orange"
+          />
+          <button id="dispatchSmsBtn" class="bg-jeep-orange hover:bg-amber-600 text-black font-bold px-4 py-2 rounded text-xs tactical-font flex items-center gap-1.5 transition">
+            <i class="fa-solid fa-comment-sms text-sm"></i>
+            <span>Send SMS</span>
+          </button>
+        </div>
+        <p class="text-[11px] text-gray-400">If you leave the number blank, it will launch your Messages app so you can pick anyone from your contacts.</p>
+      </div>
+
+      <!-- Message Preview Box -->
+      <div class="flex flex-col gap-1.5">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold text-gray-300">Message & Instructions Included:</span>
+          <button id="copyMessageTextBtn" class="text-xs text-jeep-orange hover:underline font-mono">
+            <i class="fa-regular fa-copy mr-1"></i>Copy Text
+          </button>
+        </div>
+        <textarea 
+          id="previewMessageText" 
+          rows="6" 
+          readonly 
+          class="w-full bg-black/60 border border-jeep-lightolive/30 rounded p-2.5 text-xs text-gray-300 font-mono resize-none focus:outline-none"
+        ></textarea>
+      </div>
+
+      <!-- Step-by-Step Phone Installation Reference -->
+      <div class="grid grid-cols-2 gap-2 text-[11px] bg-jeep-darkolive/40 p-3 rounded-lg border border-jeep-lightolive/20">
+        <div>
+          <span class="text-jeep-orange font-bold block mb-1"><i class="fa-brands fa-apple mr-1"></i>iPhone Setup:</span>
+          <ol class="list-decimal list-inside text-gray-300 space-y-0.5">
+            <li>Open link in Safari</li>
+            <li>Tap Share icon (box + arrow)</li>
+            <li>Tap "Add to Home Screen"</li>
+          </ol>
+        </div>
+        <div>
+          <span class="text-jeep-orange font-bold block mb-1"><i class="fa-brands fa-android mr-1"></i>Android Setup:</span>
+          <ol class="list-decimal list-inside text-gray-300 space-y-0.5">
+            <li>Open link in Chrome</li>
+            <li>Tap 3 dots (top right)</li>
+            <li>Tap "Install app" or "Add to Home screen"</li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center justify-between pt-1">
+        <button id="copyShareLinkOnlyBtn" class="text-xs text-gray-400 hover:text-white flex items-center gap-1">
+          <i class="fa-solid fa-link text-jeep-orange"></i> Copy Link Only
+        </button>
+        <button id="closeModalFooterBtn" class="bg-jeep-darkolive hover:bg-jeep-olive text-white px-4 py-1.5 rounded text-xs tactical-font">
+          Done
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL: POST RALLY / EVENT -->
+  <div id="postModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-jeep-steel border border-jeep-lightolive rounded-2xl max-w-md w-full p-5 shadow-2xl relative flex flex-col gap-3">
+      <button id="closePostModalBtn" class="absolute top-4 right-4 text-gray-400 hover:text-white text-lg">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <h2 class="tactical-font text-base font-bold text-white uppercase tracking-wider flex items-center gap-2">
+        <i class="fa-solid fa-bullhorn text-jeep-orange"></i> Post Jeep Gathering
+      </h2>
+
+      <form id="postEventForm" class="flex flex-col gap-2.5 text-xs">
+        <div>
+          <label class="block text-gray-300 mb-1">Event / Run Title</label>
+          <input id="postTitle" required placeholder="e.g. Pass-a-Grille Sunset Duck Crawl" class="w-full bg-black/50 border border-jeep-lightolive/40 rounded p-2 text-white focus:outline-none focus:border-jeep-orange">
+        </div>
+        
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-gray-300 mb-1">Host Club</label>
+            <select id="postClub" class="w-full bg-black/50 border border-jeep-lightolive/40 rounded p-2 text-white focus:outline-none focus:border-jeep-orange">
+              <option value="St. Pete Beach Jeepers">St. Pete Beach Jeepers</option>
+              <option value="Sunshine City Jeep Crew">Sunshine City Jeep Crew</option>
+              <option value="Tampa Bay Jeep Club">Tampa Bay Jeep Club</option>
+              <option value="Independent Florida Crawlers">Independent / Open Run</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-gray-300 mb-1">Date & Time</label>
+            <input id="postDate" required placeholder="This Saturday @ 5:30 PM" class="w-full bg-black/50 border border-jeep-lightolive/40 rounded p-2 text-white focus:outline-none focus:border-jeep-orange">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-gray-300 mb-1">Location / Meeting Point</label>
+          <input id="postLocation" required placeholder="e.g. 8th Ave & Gulf Way, St Pete Beach" class="w-full bg-black/50 border border-jeep-lightolive/40 rounded p-2 text-white focus:outline-none focus:border-jeep-orange">
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-gray-300 mb-1">Approx Latitude</label>
+            <input id="postLat" type="number" step="0.001" value="27.688" class="w-full bg-black/50 border border-jeep-lightolive/40 rounded p-2 text-white font-mono">
+          </div>
+          <div>
+            <label class="block text-gray-300 mb-1">Approx Longitude</label>
+            <input id="postLng" type="number" step="0.001" value="-82.741" class="w-full bg-black/50 border border-jeep-lightolive/40 rounded p-2 text-white font-mono">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-gray-300 mb-1">Notes / CB Channel / Details</label>
+          <textarea id="postDesc" rows="2" placeholder="Tire airing down at lot, CB ch 4, bringing duck buckets." class="w-full bg-black/50 border border-jeep-lightolive/40 rounded p-2 text-white focus:outline-none focus:border-jeep-orange"></textarea>
+        </div>
+
+        <button type="submit" class="w-full bg-jeep-orange hover:bg-amber-600 text-black font-bold py-2 rounded tactical-font tracking-wider uppercase mt-1 transition">
+          Publish to Crew Radar
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="fixed bottom-4 right-4 z-50 bg-jeep-steel border border-jeep-orange text-white px-4 py-2.5 rounded-lg shadow-xl tactical-font text-xs flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300">
+    <i class="fa-solid fa-check text-jeep-orange"></i>
+    <span id="toastMsg">Action Successful</span>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC & RADAR CONTROLLER -->
+  <script>
+    // --- KNOWN BASE COORDINATES ---
+    const BASE_COORDINATES = {
+      madeira: { lat: 27.7989, lng: -82.8023, name: "Madeira Beach, FL" },
+      stpete: { lat: 27.7253, lng: -82.7412, name: "St. Pete Beach (Gulf Blvd)" },
+      tampa: { lat: 27.9506, lng: -82.4572, name: "Tampa Downtown" },
+      clearwater: { lat: 27.9780, lng: -82.8270, name: "Clearwater Beach Pier 60" },
+      ocala: { lat: 29.1872, lng: -82.1401, name: "Ocala / Hardrock Park" }
+    };
+
+    let activeBase = { ...BASE_COORDINATES.madeira };
+    let currentRadiusMiles = 50;
+    let activeFilter = 'all';
+
+    // --- CURATED INITIAL JEEP EVENTS (PINELAS, TAMPA, CENTRAL FL) ---
+    const defaultEvents = [
+      {
+        id: "ev-spb-1",
+        title: "Pass-a-Grille Sunset Convoy & Chill",
+        group: "St. Pete Beach Jeepers",
+        category: "spb",
+        source: "Facebook Public Event",
+        sourceUrl: "https://www.facebook.com/search/events/?q=st%20pete%20beach%20jeep",
+        date: "Saturday @ 6:00 PM",
+        location: "8th Ave & Gulf Way, Pass-a-Grille Beach",
+        lat: 27.6895,
+        lng: -82.7410,
+        desc: "Doors off, tops down. Meeting at the southern end lot for the sunset horn salute. Casual lineup, duck exchanges welcome.",
+        ducks: 18,
+        userDucked: false
+      },
+      {
+        id: "ev-sun-1",
+        title: "Sunshine City Jeeps @ Ferg's Flex Night",
+        group: "Sunshine City Jeep Crew",
+        category: "sunshine",
+        source: "Facebook Page",
+        sourceUrl: "https://www.facebook.com/search/events/?q=fergs%20jeep%20night",
+        date: "Thursday @ 6:30 PM",
+        location: "Ferg's Sports Bar, Central Ave, St. Petersburg",
+        lat: 27.7712,
+        lng: -82.6514,
+        desc: "Reserved courtyard parking for rigs. Burgers, cold drinks, RTI flex check. Ducking and raffle tickets for local animal shelter.",
+        ducks: 24,
+        userDucked: true
+      },
+      {
+        id: "ev-tbjc-1",
+        title: "Quaker Steak RTI Ramp & Meet",
+        group: "Tampa Bay Jeep Club",
+        category: "tbjc",
+        source: "Facebook Public Group",
+        sourceUrl: "https://www.facebook.com/search/events/?q=tampa%20bay%20jeep%20club",
+        date: "Tuesday @ 7:00 PM",
+        location: "Quaker Steak & Lube, 49th St N, Pinellas Park",
+        lat: 27.8665,
+        lng: -82.7001,
+        desc: "Monthly Pinellas Park gathering. Free ramp scoring, show-n-shine categories, gear swaps, and 4x4 trail talk.",
+        ducks: 35,
+        userDucked: false
+      },
+      {
+        id: "ev-spb-2",
+        title: "Upham Beach Morning Sand & Coffee",
+        group: "St. Pete Beach Jeepers",
+        category: "spb",
+        source: "Facebook Post",
+        sourceUrl: "https://www.facebook.com/search/events/?q=st%20pete%20beach%20jeep",
+        date: "Sunday @ 8:00 AM",
+        location: "Upham Beach Park, St Pete Beach, FL",
+        lat: 27.7341,
+        lng: -82.7533,
+        desc: "Early morning cruise before the beach gets packed. Paradise Grille coffee run. Parking lined up along 67th Ave.",
+        ducks: 12,
+        userDucked: false
+      },
+      {
+        id: "ev-trail-1",
+        title: "Croom Sand & Trail Crawl",
+        group: "Independent Florida Crawlers",
+        category: "trails",
+        source: "Florida Forest Service Offroad",
+        sourceUrl: "https://www.freshfromflorida.com/",
+        date: "Next Saturday @ 9:00 AM",
+        location: "Croom Motorcycle/4x4 Area, Brooksville, FL",
+        lat: 28.5910,
+        lng: -82.2612,
+        desc: "Mild to moderate sandy hill climbs, rutted trails, and wooded loops. Air down station at main staging area. Whip flags required.",
+        ducks: 19,
+        userDucked: false
+      },
+      {
+        id: "ev-trail-2",
+        title: "Citrus WMA (Holder Mine) Mud Hole Excursion",
+        group: "Central FL 4x4 Trailheads",
+        category: "
