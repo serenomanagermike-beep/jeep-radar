@@ -3,18 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>JeepRadar // Florida Gulf Coast & Beyond</title>
+  <title>JeepRadar // Florida Gulf Coast</title>
   
-  <!-- CDNs: Tailwind CSS, Leaflet Maps, Font Awesome Icons -->
+  <!-- CDNs -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
-  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,400;0,600;0,700;1,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <script>
     tailwind.config = {
-      darkMode: 'class',
       theme: {
         extend: {
           colors: {
@@ -23,9 +22,7 @@
               darkolive: '#1c2419',
               lightolive: '#475841',
               orange: '#f59e0b',
-              amber: '#d97706',
-              mud: '#453221',
-              metal: '#1e2420',
+              metal: '#181f1a',
               steel: '#0d110f'
             }
           },
@@ -43,62 +40,36 @@
       background-color: #0b0f0d;
       color: #e5e7eb;
       font-family: 'Inter', sans-serif;
-      overflow-x: hidden;
     }
-    .tactical-font {
-      font-family: 'Chakra Petch', sans-serif;
-      letter-spacing: 0.05em;
-    }
+    .tactical-font { font-family: 'Chakra Petch', sans-serif; letter-spacing: 0.05em; }
     .topo-grid {
       background-image: 
-        radial-gradient(circle at 50% 50%, rgba(245, 158, 11, 0.05) 0%, transparent 60%),
-        linear-gradient(rgba(245, 158, 11, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(245, 158, 11, 0.03) 1px, transparent 1px);
+        radial-gradient(circle at 50% 50%, rgba(245, 158, 11, 0.04) 0%, transparent 60%),
+        linear-gradient(rgba(245, 158, 11, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(245, 158, 11, 0.02) 1px, transparent 1px);
       background-size: 100% 100%, 32px 32px, 32px 32px;
     }
-    .custom-scrollbar::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-track {
-      background: #111612;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: #2d3829;
-      border-radius: 3px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-      background: #f59e0b;
-    }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #111612; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #2d3829; border-radius: 3px; }
     .leaflet-popup-content-wrapper {
       background: #1a221b;
       color: #f3f4f6;
       border: 1px solid #f59e0b;
       border-radius: 8px;
     }
-    .leaflet-popup-tip {
-      background: #1a221b;
-      border: 1px solid #f59e0b;
-    }
-    .duck-badge {
-      animation: pulseDuck 2s infinite ease-in-out;
-    }
-    @keyframes pulseDuck {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.08); }
-    }
+    .leaflet-popup-tip { background: #1a221b; }
   </style>
 </head>
 <body class="min-h-screen topo-grid flex flex-col selection:bg-jeep-orange selection:text-black">
 
-  <!-- TOP APP HEADER -->
+  <!-- TOP HEADER -->
   <header class="bg-jeep-steel/95 border-b border-jeep-lightolive/40 backdrop-blur sticky top-0 z-50 px-3 sm:px-6 py-2.5">
     <div class="max-w-7xl mx-auto flex items-center justify-between">
       
-      <!-- Brand & 7-Slot Grille Logo -->
+      <!-- 7-Slot Grille Branding -->
       <div class="flex items-center gap-3">
-        <div class="bg-jeep-darkolive p-2 rounded border border-jeep-orange/50 flex items-center justify-center shadow-lg shadow-black/40">
-          <!-- 7-Slot Grille SVG -->
+        <div class="bg-jeep-darkolive p-1.5 rounded border border-jeep-orange/50 flex items-center justify-center shadow-lg">
           <svg class="w-8 h-6 text-jeep-orange fill-current" viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="30" r="9" stroke="#f59e0b" stroke-width="3" fill="#1c2419" />
             <circle cx="88" cy="30" r="9" stroke="#f59e0b" stroke-width="3" fill="#1c2419" />
@@ -114,13 +85,13 @@
         <div>
           <div class="flex items-center gap-2">
             <span class="tactical-font text-xl sm:text-2xl font-bold tracking-wider text-white">JEEP<span class="text-jeep-orange">RADAR</span></span>
-            <span class="text-[10px] uppercase font-bold tracking-widest bg-jeep-orange text-black px-1.5 py-0.5 rounded">Gulf Edition</span>
+            <span class="text-[10px] uppercase font-bold tracking-widest bg-jeep-orange text-black px-1.5 py-0.5 rounded">Gulf Coast</span>
           </div>
           <p class="text-xs text-gray-400 hidden sm:block">Pinellas • St. Pete • Tampa Bay • Florida Crawlers</p>
         </div>
       </div>
 
-      <!-- Quick Action Controls -->
+      <!-- Action Buttons -->
       <div class="flex items-center gap-2">
         <button id="openShareModalBtn" class="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-semibold px-3 py-1.5 rounded text-xs sm:text-sm tactical-font transition-all shadow-md active:scale-95">
           <i class="fa-solid fa-paper-plane"></i>
@@ -132,7 +103,7 @@
           <span class="hidden md:inline">Post Rally</span>
         </button>
 
-        <button id="syncFeedsBtn" title="Sync Facebook & Web Feeds" class="bg-jeep-darkolive hover:bg-jeep-olive text-gray-200 border border-jeep-lightolive/50 w-9 h-9 rounded flex items-center justify-center transition active:rotate-180 duration-300">
+        <button id="syncFeedsBtn" title="Refresh Feeds" class="bg-jeep-darkolive hover:bg-jeep-olive text-gray-200 border border-jeep-lightolive/50 w-9 h-9 rounded flex items-center justify-center transition active:rotate-180 duration-300">
           <i class="fa-solid fa-arrows-rotate text-jeep-orange text-sm"></i>
         </button>
       </div>
@@ -140,11 +111,11 @@
     </div>
   </header>
 
-  <!-- TELEMETRY & RADIUS SEARCH DOCK -->
+  <!-- TELEMETRY & RADIUS TOOLBAR -->
   <section class="bg-jeep-metal/90 border-b border-jeep-lightolive/30 px-3 sm:px-6 py-3">
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
       
-      <!-- Home Base & GPS Selector -->
+      <!-- Base Coordinates -->
       <div class="flex items-center gap-2 flex-wrap">
         <div class="flex items-center gap-2 bg-black/60 border border-jeep-lightolive/40 px-3 py-1.5 rounded text-xs">
           <i class="fa-solid fa-location-crosshairs text-jeep-orange"></i>
@@ -155,17 +126,16 @@
             <option value="tampa" class="bg-jeep-steel text-white">Tampa Downtown (27.95°N, -82.45°W)</option>
             <option value="clearwater" class="bg-jeep-steel text-white">Clearwater Beach Pier 60</option>
             <option value="ocala" class="bg-jeep-steel text-white">Ocala National Forest / Hardrock</option>
-            <option value="custom" class="bg-jeep-steel text-white">Device GPS Coordinates</option>
           </select>
         </div>
 
-        <button id="useDeviceGpsBtn" class="bg-black/40 hover:bg-jeep-darkolive border border-jeep-lightolive/40 px-2.5 py-1.5 rounded text-xs text-gray-300 flex items-center gap-1 transition" title="Acquire Device GPS">
+        <button id="useDeviceGpsBtn" class="bg-black/40 hover:bg-jeep-darkolive border border-jeep-lightolive/40 px-2.5 py-1.5 rounded text-xs text-gray-300 flex items-center gap-1 transition">
           <i class="fa-solid fa-satellite-dish text-jeep-orange"></i>
           <span class="hidden sm:inline">Use My GPS</span>
         </button>
       </div>
 
-      <!-- Search Radius Range Slider -->
+      <!-- Radius Range Slider -->
       <div class="flex items-center gap-4 bg-black/60 border border-jeep-lightolive/40 px-4 py-2 rounded-lg flex-1 max-w-lg">
         <div class="flex items-center gap-2 whitespace-nowrap">
           <i class="fa-solid fa-compass text-jeep-orange"></i>
@@ -183,7 +153,7 @@
         />
       </div>
 
-      <!-- Quick Group Filters -->
+      <!-- Club Filter Chips -->
       <div class="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 custom-scrollbar text-xs">
         <button data-filter="all" class="filter-pill active bg-jeep-orange text-black font-semibold px-2.5 py-1 rounded whitespace-nowrap">All Sources</button>
         <button data-filter="spb" class="filter-pill bg-black/50 text-gray-300 hover:text-white border border-jeep-lightolive/30 px-2.5 py-1 rounded whitespace-nowrap">SPB Jeepers</button>
@@ -195,34 +165,31 @@
     </div>
   </section>
 
-  <!-- MAIN DUAL-PANEL DASHBOARD -->
+  <!-- DASHBOARD CONTAINER -->
   <main class="max-w-7xl mx-auto w-full p-3 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1">
     
-    <!-- LEFT PANEL: EVENT FEED & LISTING (7 COLS) -->
+    <!-- LEFT: EVENTS FEED -->
     <div class="lg:col-span-7 flex flex-col gap-4">
       
-      <!-- Intel & Status Strip -->
       <div class="flex items-center justify-between bg-jeep-steel/80 p-2.5 rounded border border-jeep-lightolive/30 text-xs">
         <div class="flex items-center gap-2">
           <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
-          <span class="text-gray-300">Scanned Feeds: <strong class="text-white">Active (3 Local Clubs + 4 Trail Registries)</strong></span>
+          <span class="text-gray-300">Scanned Feeds: <strong class="text-white">Active (3 Local Clubs + Public Lands)</strong></span>
         </div>
         <div class="text-gray-400 font-mono">
           Found: <span id="eventCountBadge" class="text-jeep-orange font-bold">0</span> Events in Zone
         </div>
       </div>
 
-      <!-- Events Container -->
       <div id="eventsListContainer" class="flex flex-col gap-3 custom-scrollbar">
-        <!-- Rendered dynamically via JavaScript -->
+        <!-- Rendered by JS -->
       </div>
 
     </div>
 
-    <!-- RIGHT PANEL: INTERACTIVE TACTICAL MAP & CLUBS DIRECTORY (5 COLS) -->
+    <!-- RIGHT: INTERACTIVE MAP & DIRECTORY -->
     <div class="lg:col-span-5 flex flex-col gap-4">
       
-      <!-- Tactical Map View -->
       <div class="bg-jeep-steel border border-jeep-lightolive/40 rounded-xl overflow-hidden shadow-2xl flex flex-col">
         <div class="bg-jeep-darkolive/90 px-4 py-2 flex items-center justify-between border-b border-jeep-lightolive/30">
           <div class="flex items-center gap-2">
@@ -236,13 +203,13 @@
         
         <div class="p-2.5 bg-black/40 text-[11px] text-gray-400 flex items-center justify-between border-t border-jeep-lightolive/20">
           <span><i class="fa-solid fa-circle text-jeep-orange text-[9px] mr-1"></i>Yellow: Event Pin</span>
-          <span><i class="fa-solid fa-crosshairs text-blue-400 text-[9px] mr-1"></i>Blue: Your Location</span>
+          <span><i class="fa-solid fa-circle text-blue-400 text-[9px] mr-1"></i>Blue: Your Location</span>
           <span>Amber Circle: Range Horizon</span>
         </div>
       </div>
 
-      <!-- Monitored Sources & Scraper Intel Card -->
-      <div class="bg-jeep-steel/90 border border-jeep-lightolive/40 rounded-xl p-4 flex flex-col gap-3 shadow-lg">
+      <!-- Monitored Feeds List -->
+      <div class="bg-jeep-steel/90 border border-jeep-lightolive/40 rounded-xl p-4 flex flex-col gap-3 shadow-lg text-xs">
         <div class="flex items-center justify-between border-b border-jeep-lightolive/30 pb-2">
           <div class="flex items-center gap-2">
             <i class="fa-brands fa-facebook text-blue-400"></i>
@@ -251,38 +218,28 @@
           <span class="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-0.5 rounded font-mono">LIVE WATCH</span>
         </div>
 
-        <div class="flex flex-col gap-2.5 text-xs">
-          <div class="flex items-center justify-between p-2 rounded bg-black/40 border border-jeep-lightolive/20">
-            <div>
-              <div class="font-bold text-gray-200">St. Pete Beach Jeepers</div>
-              <div class="text-[11px] text-gray-400">Public Group • Gulf Blvd convoys, sunset crawls</div>
-            </div>
-            <a href="https://www.facebook.com/search/groups/?q=st%20pete%20beach%20jeepers" target="_blank" class="text-jeep-orange hover:underline text-[11px]"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+        <div class="flex items-center justify-between p-2 rounded bg-black/40 border border-jeep-lightolive/20">
+          <div>
+            <div class="font-bold text-gray-200">St. Pete Beach Jeepers</div>
+            <div class="text-[11px] text-gray-400">Public Group • Gulf Blvd convoys, sunset crawls</div>
           </div>
+          <a href="https://www.facebook.com/search/groups/?q=st%20pete%20beach%20jeepers" target="_blank" class="text-jeep-orange hover:underline text-xs"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+        </div>
 
-          <div class="flex items-center justify-between p-2 rounded bg-black/40 border border-jeep-lightolive/20">
-            <div>
-              <div class="font-bold text-gray-200">Sunshine City Jeep Crew</div>
-              <div class="text-[11px] text-gray-400">St. Petersburg • Meets at Ferg's, Pier cruises</div>
-            </div>
-            <a href="https://www.facebook.com/search/groups/?q=sunshine%20city%20jeep%20crew" target="_blank" class="text-jeep-orange hover:underline text-[11px]"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+        <div class="flex items-center justify-between p-2 rounded bg-black/40 border border-jeep-lightolive/20">
+          <div>
+            <div class="font-bold text-gray-200">Sunshine City Jeep Crew</div>
+            <div class="text-[11px] text-gray-400">St. Petersburg • Meets at Ferg's, Pier cruises</div>
           </div>
+          <a href="https://www.facebook.com/search/groups/?q=sunshine%20city%20jeep%20crew" target="_blank" class="text-jeep-orange hover:underline text-xs"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+        </div>
 
-          <div class="flex items-center justify-between p-2 rounded bg-black/40 border border-jeep-lightolive/20">
-            <div>
-              <div class="font-bold text-gray-200">Tampa Bay Jeep Club (TBJC)</div>
-              <div class="text-[11px] text-gray-400">Tampa / Pinellas • Quaker Steak RTI ramp, Charity runs</div>
-            </div>
-            <a href="https://www.facebook.com/search/groups/?q=tampa%20bay%20jeep%20club" target="_blank" class="text-jeep-orange hover:underline text-[11px]"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+        <div class="flex items-center justify-between p-2 rounded bg-black/40 border border-jeep-lightolive/20">
+          <div>
+            <div class="font-bold text-gray-200">Tampa Bay Jeep Club (TBJC)</div>
+            <div class="text-[11px] text-gray-400">Tampa / Pinellas • Quaker Steak RTI ramp, Charity runs</div>
           </div>
-
-          <div class="flex items-center justify-between p-2 rounded bg-black/40 border border-jeep-lightolive/20">
-            <div>
-              <div class="font-bold text-gray-200">Citrus & Ocala 4x4 Public Lands</div>
-              <div class="text-[11px] text-gray-400">Holder Mine, Croom Motorcycle & Offroad Area, Hardrock</div>
-            </div>
-            <span class="text-emerald-400 font-mono text-[10px]">Open Trails</span>
-          </div>
+          <a href="https://www.facebook.com/search/groups/?q=tampa%20bay%20jeep%20club" target="_blank" class="text-jeep-orange hover:underline text-xs"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
         </div>
       </div>
 
@@ -290,16 +247,13 @@
 
   </main>
 
-  <!-- MODAL: MASTER "SHARE APP WITH CREW" (WITH PHONE SETUP INSTRUCTIONS) -->
+  <!-- MODAL: SHARE APP WITH CREW -->
   <div id="shareModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
     <div class="bg-jeep-steel border border-jeep-orange/80 rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl relative flex flex-col gap-4">
-      
-      <!-- Close button -->
       <button id="closeShareModalBtn" class="absolute top-4 right-4 text-gray-400 hover:text-white text-lg">
         <i class="fa-solid fa-xmark"></i>
       </button>
 
-      <!-- Modal Header -->
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-full bg-jeep-orange/20 border border-jeep-orange flex items-center justify-center text-jeep-orange">
           <i class="fa-solid fa-paper-plane text-lg"></i>
@@ -310,7 +264,6 @@
         </div>
       </div>
 
-      <!-- Phone Number Direct SMS Dispatch -->
       <div class="bg-black/50 border border-jeep-lightolive/40 p-3.5 rounded-xl flex flex-col gap-2">
         <label class="text-xs font-semibold text-gray-300">Friend's Phone Number (Optional)</label>
         <div class="flex gap-2">
@@ -325,46 +278,35 @@
             <span>Send SMS</span>
           </button>
         </div>
-        <p class="text-[11px] text-gray-400">If you leave the number blank, it will launch your Messages app so you can pick anyone from your contacts.</p>
+        <p class="text-[11px] text-gray-400">Leave blank to open your phone's Messages app and pick from contacts.</p>
       </div>
 
-      <!-- Message Preview Box -->
       <div class="flex flex-col gap-1.5">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-semibold text-gray-300">Message & Instructions Included:</span>
+          <span class="text-xs font-semibold text-gray-300">Message & Setup Guide:</span>
           <button id="copyMessageTextBtn" class="text-xs text-jeep-orange hover:underline font-mono">
             <i class="fa-regular fa-copy mr-1"></i>Copy Text
           </button>
         </div>
         <textarea 
           id="previewMessageText" 
-          rows="6" 
+          rows="5" 
           readonly 
           class="w-full bg-black/60 border border-jeep-lightolive/30 rounded p-2.5 text-xs text-gray-300 font-mono resize-none focus:outline-none"
         ></textarea>
       </div>
 
-      <!-- Step-by-Step Phone Installation Reference -->
       <div class="grid grid-cols-2 gap-2 text-[11px] bg-jeep-darkolive/40 p-3 rounded-lg border border-jeep-lightolive/20">
         <div>
           <span class="text-jeep-orange font-bold block mb-1"><i class="fa-brands fa-apple mr-1"></i>iPhone Setup:</span>
-          <ol class="list-decimal list-inside text-gray-300 space-y-0.5">
-            <li>Open link in Safari</li>
-            <li>Tap Share icon (box + arrow)</li>
-            <li>Tap "Add to Home Screen"</li>
-          </ol>
+          <p class="text-gray-300">Open link in Safari &rarr; Tap Share icon &rarr; Tap <strong>Add to Home Screen</strong></p>
         </div>
         <div>
           <span class="text-jeep-orange font-bold block mb-1"><i class="fa-brands fa-android mr-1"></i>Android Setup:</span>
-          <ol class="list-decimal list-inside text-gray-300 space-y-0.5">
-            <li>Open link in Chrome</li>
-            <li>Tap 3 dots (top right)</li>
-            <li>Tap "Install app" or "Add to Home screen"</li>
-          </ol>
+          <p class="text-gray-300">Open link in Chrome &rarr; Tap 3 dots &rarr; Tap <strong>Add to Home screen</strong></p>
         </div>
       </div>
 
-      <!-- Action Buttons -->
       <div class="flex items-center justify-between pt-1">
         <button id="copyShareLinkOnlyBtn" class="text-xs text-gray-400 hover:text-white flex items-center gap-1">
           <i class="fa-solid fa-link text-jeep-orange"></i> Copy Link Only
@@ -373,11 +315,10 @@
           Done
         </button>
       </div>
-
     </div>
   </div>
 
-  <!-- MODAL: POST RALLY / EVENT -->
+  <!-- MODAL: POST RALLY -->
   <div id="postModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
     <div class="bg-jeep-steel border border-jeep-lightolive rounded-2xl max-w-md w-full p-5 shadow-2xl relative flex flex-col gap-3">
       <button id="closePostModalBtn" class="absolute top-4 right-4 text-gray-400 hover:text-white text-lg">
@@ -391,13 +332,12 @@
       <form id="postEventForm" class="flex flex-col gap-2.5 text-xs">
         <div>
           <label class="block text-gray-300 mb-1">Event / Run Title</label>
-          <input id="postTitle" required placeholder="e.g. Pass-a-Grille Sunset Duck Crawl" class="w-full bg-black/50 border border-jeep-lightolive/40 rounded p-2 text-white focus:outline-none focus:border-jeep-orange">
+          <input id="postTitle" required placeholder="e.g. Sunset Duck Run Pass-a-Grille" class="w-full bg-black/50 border border-jeep-lightolive/40 rounded p-2 text-white focus:outline-none focus:border-jeep-orange">
         </div>
-        
         <div class="grid grid-cols-2 gap-2">
           <div>
             <label class="block text-gray-300 mb-1">Host Club</label>
-            <select id="postClub" class="w-full bg-black/50 border border-jeep-lightolive/40 rounded p-2 text-white focus:outline-none focus:border-jeep-orange">
+            <select id="postClub" class="w-full bg-black/50 border border-jeep-lightolive/40 rounded p-2 text-white focus:outline-none">
               <option value="St. Pete Beach Jeepers">St. Pete Beach Jeepers</option>
               <option value="Sunshine City Jeep Crew">Sunshine City Jeep Crew</option>
               <option value="Tampa Bay Jeep Club">Tampa Bay Jeep Club</option>
@@ -406,33 +346,15 @@
           </div>
           <div>
             <label class="block text-gray-300 mb-1">Date & Time</label>
-            <input id="postDate" required placeholder="This Saturday @ 5:30 PM" class="w-full bg-black/50 border border-jeep-lightolive/40 rounded p-2 text-white focus:outline-none focus:border-jeep-orange">
+            <input id="postDate" required placeholder="Saturday @ 6:00 PM" class="w-full bg-black/50 border border-jeep-lightolive/40 rounded p-2 text-white focus:outline-none">
           </div>
         </div>
-
         <div>
-          <label class="block text-gray-300 mb-1">Location / Meeting Point</label>
-          <input id="postLocation" required placeholder="e.g. 8th Ave & Gulf Way, St Pete Beach" class="w-full bg-black/50 border border-jeep-lightolive/40 rounded p-2 text-white focus:outline-none focus:border-jeep-orange">
+          <label class="block text-gray-300 mb-1">Meeting Location</label>
+          <input id="postLocation" required placeholder="8th Ave & Gulf Way, Pass-a-Grille" class="w-full bg-black/50 border border-jeep-lightolive/40 rounded p-2 text-white focus:outline-none">
         </div>
-
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block text-gray-300 mb-1">Approx Latitude</label>
-            <input id="postLat" type="number" step="0.001" value="27.688" class="w-full bg-black/50 border border-jeep-lightolive/40 rounded p-2 text-white font-mono">
-          </div>
-          <div>
-            <label class="block text-gray-300 mb-1">Approx Longitude</label>
-            <input id="postLng" type="number" step="0.001" value="-82.741" class="w-full bg-black/50 border border-jeep-lightolive/40 rounded p-2 text-white font-mono">
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-gray-300 mb-1">Notes / CB Channel / Details</label>
-          <textarea id="postDesc" rows="2" placeholder="Tire airing down at lot, CB ch 4, bringing duck buckets." class="w-full bg-black/50 border border-jeep-lightolive/40 rounded p-2 text-white focus:outline-none focus:border-jeep-orange"></textarea>
-        </div>
-
         <button type="submit" class="w-full bg-jeep-orange hover:bg-amber-600 text-black font-bold py-2 rounded tactical-font tracking-wider uppercase mt-1 transition">
-          Publish to Crew Radar
+          Publish to Radar
         </button>
       </form>
     </div>
@@ -444,29 +366,14 @@
     <span id="toastMsg">Action Successful</span>
   </div>
 
-  <!-- JAVASCRIPT LOGIC & RADAR CONTROLLER -->
   <script>
-    // --- KNOWN BASE COORDINATES ---
-    const BASE_COORDINATES = {
-      madeira: { lat: 27.7989, lng: -82.8023, name: "Madeira Beach, FL" },
-      stpete: { lat: 27.7253, lng: -82.7412, name: "St. Pete Beach (Gulf Blvd)" },
-      tampa: { lat: 27.9506, lng: -82.4572, name: "Tampa Downtown" },
-      clearwater: { lat: 27.9780, lng: -82.8270, name: "Clearwater Beach Pier 60" },
-      ocala: { lat: 29.1872, lng: -82.1401, name: "Ocala / Hardrock Park" }
-    };
-
-    let activeBase = { ...BASE_COORDINATES.madeira };
-    let currentRadiusMiles = 50;
-    let activeFilter = 'all';
-
-    // --- CURATED INITIAL JEEP EVENTS (PINELAS, TAMPA, CENTRAL FL) ---
-    const defaultEvents = [
+    const INITIAL_EVENTS = [
       {
         id: "ev-spb-1",
         title: "Pass-a-Grille Sunset Convoy & Chill",
         group: "St. Pete Beach Jeepers",
         category: "spb",
-        source: "Facebook Public Event",
+        source: "Facebook Public Group",
         sourceUrl: "https://www.facebook.com/search/events/?q=st%20pete%20beach%20jeep",
         date: "Saturday @ 6:00 PM",
         location: "8th Ave & Gulf Way, Pass-a-Grille Beach",
@@ -487,7 +394,7 @@
         location: "Ferg's Sports Bar, Central Ave, St. Petersburg",
         lat: 27.7712,
         lng: -82.6514,
-        desc: "Reserved courtyard parking for rigs. Burgers, cold drinks, RTI flex check. Ducking and raffle tickets for local animal shelter.",
+        desc: "Reserved courtyard parking for rigs. Burgers, cold drinks, RTI flex ramp. Ducking and local raffle.",
         ducks: 24,
         userDucked: true
       },
@@ -502,7 +409,7 @@
         location: "Quaker Steak & Lube, 49th St N, Pinellas Park",
         lat: 27.8665,
         lng: -82.7001,
-        desc: "Monthly Pinellas Park gathering. Free ramp scoring, show-n-shine categories, gear swaps, and 4x4 trail talk.",
+        desc: "Monthly Pinellas Park gathering. Free ramp scoring, show-n-shine, gear swaps, and 4x4 trail talk.",
         ducks: 35,
         userDucked: false
       },
@@ -532,12 +439,365 @@
         location: "Croom Motorcycle/4x4 Area, Brooksville, FL",
         lat: 28.5910,
         lng: -82.2612,
-        desc: "Mild to moderate sandy hill climbs, rutted trails, and wooded loops. Air down station at main staging area. Whip flags required.",
+        desc: "Mild to moderate sandy hill climbs, rutted trails, and wooded loops. Air down station at staging area.",
         ducks: 19,
         userDucked: false
       },
       {
         id: "ev-trail-2",
-        title: "Citrus WMA (Holder Mine) Mud Hole Excursion",
-        group: "Central FL 4x4 Trailheads",
-        category: "
+        title: "Citrus WMA (Holder Mine) Mud Excursion",
+        group: "Independent Florida Crawlers",
+        category: "trails",
+        source: "Trailhead Event Forum",
+        sourceUrl: "https://www.facebook.com",
+        date: "Sunday 2 Weeks Out @ 8:30 AM",
+        location: "Holder Mine Campground, Inverness, FL",
+        lat: 28.7995,
+        lng: -82.3850,
+        desc: "Trail 10 and 13 trail ride. Winch and tow straps recommended for deep water crossings.",
+        ducks: 29,
+        userDucked: false
+      }
+    ];
+
+    const BASE_COORDINATES = {
+      madeira: { lat: 27.7989, lng: -82.8023, name: "Madeira Beach, FL" },
+      stpete: { lat: 27.7253, lng: -82.7412, name: "St. Pete Beach (Gulf Blvd)" },
+      tampa: { lat: 27.9506, lng: -82.4572, name: "Tampa Downtown" },
+      clearwater: { lat: 27.9780, lng: -82.8270, name: "Clearwater Beach Pier 60" },
+      ocala: { lat: 29.1872, lng: -82.1401, name: "Ocala / Hardrock Park" }
+    };
+
+    let activeBase = { ...BASE_COORDINATES.madeira };
+    let currentRadiusMiles = 50;
+    let activeFilter = 'all';
+
+    // Ensure events exist even if localStorage was corrupt/empty
+    let stored = null;
+    try {
+      stored = JSON.parse(localStorage.getItem('jeep_radar_events'));
+    } catch(e) {}
+    let events = (stored && stored.length > 0) ? stored : INITIAL_EVENTS;
+
+    function calculateDistanceMiles(lat1, lon1, lat2, lon2) {
+      const R = 3958.8;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = 
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    }
+
+    let map = null;
+    let radiusCircle = null;
+    let markersLayer = null;
+    let userMarker = null;
+
+    function initMap() {
+      const mapContainer = document.getElementById('radarMap');
+      if (!mapContainer) return;
+
+      map = L.map('radarMap', { zoomControl: true, attributionControl: false }).setView([activeBase.lat, activeBase.lng], 9);
+
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 18,
+        subdomains: 'abcd'
+      }).addTo(map);
+
+      markersLayer = L.layerGroup().addTo(map);
+
+      const userIcon = L.divIcon({
+        className: 'user-pin',
+        html: '<div style="background-color: #3b82f6; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 10px #3b82f6;"></div>',
+        iconSize: [14, 14],
+        iconAnchor: [7, 7]
+      });
+
+      userMarker = L.marker([activeBase.lat, activeBase.lng], { icon: userIcon }).addTo(map);
+
+      radiusCircle = L.circle([activeBase.lat, activeBase.lng], {
+        radius: currentRadiusMiles * 1609.34,
+        color: '#f59e0b',
+        fillColor: '#f59e0b',
+        fillOpacity: 0.08,
+        weight: 1.5,
+        dashArray: '6, 6'
+      }).addTo(map);
+
+      setTimeout(() => { map.invalidateSize(); }, 200);
+    }
+
+    function updateMapRange() {
+      if (!map) return;
+      userMarker.setLatLng([activeBase.lat, activeBase.lng]);
+      radiusCircle.setLatLng([activeBase.lat, activeBase.lng]);
+      radiusCircle.setRadius(currentRadiusMiles * 1609.34);
+      document.getElementById('mapCenterCoords').innerText = 
+        `${activeBase.lat.toFixed(2)}° N, ${Math.abs(activeBase.lng).toFixed(2)}° W`;
+    }
+
+    function renderApp() {
+      const listContainer = document.getElementById('eventsListContainer');
+      listContainer.innerHTML = '';
+      if (markersLayer) markersLayer.clearLayers();
+
+      let inRangeCount = 0;
+
+      const processedEvents = events.map(ev => {
+        const dist = calculateDistanceMiles(activeBase.lat, activeBase.lng, ev.lat, ev.lng);
+        return { ...ev, distance: dist };
+      }).sort((a, b) => a.distance - b.distance);
+
+      processedEvents.forEach(ev => {
+        const matchesFilter = (activeFilter === 'all' || ev.category === activeFilter);
+        const inRadius = (ev.distance <= currentRadiusMiles);
+
+        if (matchesFilter && inRadius) {
+          inRangeCount++;
+
+          if (markersLayer) {
+            const eventPin = L.divIcon({
+              className: 'ev-pin',
+              html: '<div style="background:#f59e0b; color:black; font-size:10px; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid white; box-shadow:0 2px 6px rgba(0,0,0,0.6); font-weight:bold;">📍</div>',
+              iconSize: [22, 22],
+              iconAnchor: [11, 22]
+            });
+
+            const marker = L.marker([ev.lat, ev.lng], { icon: eventPin });
+            marker.bindPopup(`
+              <div style="font-family:'Chakra Petch',sans-serif;">
+                <div style="font-weight:bold; color:#f59e0b; font-size:13px;">${ev.title}</div>
+                <div style="font-size:11px; color:#d1d5db;">${ev.group}</div>
+                <div style="font-size:11px; color:#9ca3af; margin-top:4px;">${ev.date}</div>
+                <div style="font-size:11px; color:#60a5fa; font-weight:bold; margin-top:2px;">${ev.distance.toFixed(1)} miles away</div>
+              </div>
+            `);
+            markersLayer.addLayer(marker);
+          }
+
+          const card = document.createElement('div');
+          card.className = "bg-jeep-steel/95 border border-jeep-lightolive/40 hover:border-jeep-orange/60 rounded-xl p-4 transition flex flex-col gap-3 shadow-lg";
+          card.innerHTML = `
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex-1">
+                <div class="flex items-center gap-2 flex-wrap mb-1">
+                  <span class="text-[10px] font-bold uppercase tracking-wider bg-jeep-darkolive border border-jeep-lightolive/60 text-jeep-orange px-2 py-0.5 rounded">
+                    ${ev.group}
+                  </span>
+                  <span class="text-[10px] text-gray-400 font-mono">
+                    <i class="fa-brands fa-facebook text-blue-400 mr-1"></i>${ev.source}
+                  </span>
+                </div>
+                <h3 class="tactical-font text-base sm:text-lg font-bold text-white hover:text-jeep-orange transition">
+                  ${ev.title}
+                </h3>
+              </div>
+              <div class="text-right">
+                <div class="tactical-font font-bold text-base text-jeep-orange leading-tight">
+                  ${ev.distance.toFixed(1)} <span class="text-xs font-normal text-gray-300">mi</span>
+                </div>
+                <span class="text-[10px] text-emerald-400 uppercase font-mono">In Range</span>
+              </div>
+            </div>
+
+            <p class="text-xs text-gray-300 leading-relaxed">${ev.desc}</p>
+
+            <div class="flex items-center justify-between gap-2 pt-2 border-t border-jeep-lightolive/20 text-xs text-gray-400">
+              <div class="flex items-center gap-3 flex-wrap">
+                <span><i class="fa-regular fa-clock text-jeep-orange mr-1"></i>${ev.date}</span>
+                <span><i class="fa-solid fa-location-pin text-jeep-orange mr-1"></i>${ev.location}</span>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between gap-2 pt-1 flex-wrap">
+              <button onclick="toggleDuck('${ev.id}')" class="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs tactical-font font-semibold transition ${ev.userDucked ? 'bg-amber-400 text-black border border-amber-300' : 'bg-black/50 hover:bg-jeep-darkolive text-gray-200 border border-jeep-lightolive/40'}">
+                <span>🦆</span>
+                <span>${ev.userDucked ? 'Ducked!' : 'Duck This Run'}</span>
+                <span class="ml-1 bg-black/40 text-jeep-orange px-1.5 py-0.2 rounded font-mono text-[11px]">${ev.ducks}</span>
+              </button>
+
+              <div class="flex items-center gap-2">
+                <a href="${ev.sourceUrl}" target="_blank" class="px-2.5 py-1.5 rounded bg-black/40 hover:bg-jeep-darkolive border border-jeep-lightolive/30 text-gray-300 text-xs flex items-center gap-1">
+                  <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                  <span>Post</span>
+                </a>
+                <a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(ev.location)}" target="_blank" class="px-2.5 py-1.5 rounded bg-jeep-darkolive hover:bg-jeep-olive border border-jeep-lightolive/50 text-white text-xs flex items-center gap-1">
+                  <i class="fa-solid fa-diamond-turn-right text-jeep-orange text-xs"></i>
+                  <span>Directions</span>
+                </a>
+              </div>
+            </div>
+          `;
+          listContainer.appendChild(card);
+        }
+      });
+
+      document.getElementById('eventCountBadge').innerText = inRangeCount;
+
+      if (inRangeCount === 0) {
+        listContainer.innerHTML = `
+          <div class="bg-jeep-steel/80 border border-dashed border-jeep-lightolive/50 rounded-xl p-8 text-center flex flex-col items-center justify-center gap-2">
+            <i class="fa-solid fa-binoculars text-3xl text-jeep-orange"></i>
+            <h4 class="tactical-font text-base font-bold text-white">No Events in ${currentRadiusMiles}-Mile Horizon</h4>
+            <p class="text-xs text-gray-400">Increase your radius slider above to expand search coverage.</p>
+          </div>
+        `;
+      }
+    }
+
+    window.toggleDuck = function(id) {
+      events = events.map(ev => {
+        if (ev.id === id) {
+          const ducked = !ev.userDucked;
+          return { ...ev, userDucked: ducked, ducks: ducked ? ev.ducks + 1 : ev.ducks - 1 };
+        }
+        return ev;
+      });
+      localStorage.setItem('jeep_radar_events', JSON.stringify(events));
+      renderApp();
+      showToast("Duck count updated!");
+    };
+
+    // Radius slider
+    const radiusSlider = document.getElementById('radiusSlider');
+    radiusSlider.addEventListener('input', (e) => {
+      currentRadiusMiles = parseInt(e.target.value);
+      document.getElementById('radiusValDisplay').innerText = `${currentRadiusMiles} mi`;
+      updateMapRange();
+      renderApp();
+    });
+
+    // Base dropdown
+    document.getElementById('baseLocationSelect').addEventListener('change', (e) => {
+      const val = e.target.value;
+      if (BASE_COORDINATES[val]) {
+        activeBase = { ...BASE_COORDINATES[val] };
+        updateMapRange();
+        map.setView([activeBase.lat, activeBase.lng], 9);
+        renderApp();
+        showToast(`Base set to ${activeBase.name}`);
+      }
+    });
+
+    // Device GPS
+    document.getElementById('useDeviceGpsBtn').addEventListener('click', () => {
+      if (!navigator.geolocation) return;
+      navigator.geolocation.getCurrentPosition((pos) => {
+        activeBase = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          name: "Device GPS"
+        };
+        updateMapRange();
+        map.setView([activeBase.lat, activeBase.lng], 10);
+        renderApp();
+        showToast("GPS satellite lock acquired!");
+      });
+    });
+
+    // Filter pills
+    document.querySelectorAll('.filter-pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-pill').forEach(b => {
+          b.className = "filter-pill bg-black/50 text-gray-300 hover:text-white border border-jeep-lightolive/30 px-2.5 py-1 rounded whitespace-nowrap text-xs";
+        });
+        btn.className = "filter-pill active bg-jeep-orange text-black font-semibold px-2.5 py-1 rounded whitespace-nowrap text-xs";
+        activeFilter = btn.dataset.filter;
+        renderApp();
+      });
+    });
+
+    // Refresh simulation
+    document.getElementById('syncFeedsBtn').addEventListener('click', () => {
+      showToast("Syncing public Facebook feeds...");
+      setTimeout(() => {
+        events = [...INITIAL_EVENTS];
+        localStorage.setItem('jeep_radar_events', JSON.stringify(events));
+        renderApp();
+        showToast("Feeds refreshed & synced!");
+      }, 700);
+    });
+
+    // Share Modal
+    const shareModal = document.getElementById('shareModal');
+    function buildCrewPayload() {
+      const appUrl = window.location.href.split('#')[0];
+      return `Hey! Join our local Jeep crew on JeepRadar to track Florida trail rides, sunset beach runs, and meets in Pinellas/Tampa:\n\n${appUrl}\n\nHOW TO ADD IT AS AN APP TO YOUR PHONE SCREEN:\n• iPhone: Open link in Safari -> Tap Share (square with arrow) -> Tap "Add to Home Screen"\n• Android: Open link in Chrome -> Tap 3 dots (top right) -> Tap "Add to Home screen"\n\nSee you on the sand!`;
+    }
+
+    document.getElementById('openShareModalBtn').addEventListener('click', () => {
+      document.getElementById('previewMessageText').value = buildCrewPayload();
+      shareModal.classList.remove('hidden');
+    });
+
+    document.getElementById('closeShareModalBtn').addEventListener('click', () => shareModal.classList.add('hidden'));
+    document.getElementById('closeModalFooterBtn').addEventListener('click', () => shareModal.classList.add('hidden'));
+
+    document.getElementById('dispatchSmsBtn').addEventListener('click', () => {
+      const phone = document.getElementById('targetPhoneInput').value.replace(/[^0-9]/g, '');
+      const body = encodeURIComponent(buildCrewPayload());
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      const smsUri = isIOS ? (phone ? `sms:${phone}&body=${body}` : `sms:&body=${body}`) : (phone ? `sms:${phone}?body=${body}` : `sms:?body=${body}`);
+      window.location.href = smsUri;
+    });
+
+    document.getElementById('copyMessageTextBtn').addEventListener('click', () => {
+      navigator.clipboard.writeText(document.getElementById('previewMessageText').value).then(() => {
+        showToast("Message & setup guide copied!");
+      });
+    });
+
+    document.getElementById('copyShareLinkOnlyBtn').addEventListener('click', () => {
+      navigator.clipboard.writeText(window.location.href.split('#')[0]).then(() => {
+        showToast("App URL copied to clipboard!");
+      });
+    });
+
+    // Post Event Modal
+    const postModal = document.getElementById('postModal');
+    document.getElementById('openPostModalBtn').addEventListener('click', () => postModal.classList.remove('hidden'));
+    document.getElementById('closePostModalBtn').addEventListener('click', () => postModal.classList.add('hidden'));
+
+    document.getElementById('postEventForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const newEv = {
+        id: `ev-custom-${Date.now()}`,
+        title: document.getElementById('postTitle').value,
+        group: document.getElementById('postClub').value,
+        category: "spb",
+        source: "Crew Member Dispatch",
+        sourceUrl: window.location.href,
+        date: document.getElementById('postDate').value,
+        location: document.getElementById('postLocation').value,
+        lat: activeBase.lat + (Math.random() - 0.5) * 0.05,
+        lng: activeBase.lng + (Math.random() - 0.5) * 0.05,
+        desc: "Pop-up run posted by crew.",
+        ducks: 1,
+        userDucked: true
+      };
+      events.unshift(newEv);
+      localStorage.setItem('jeep_radar_events', JSON.stringify(events));
+      document.getElementById('postEventForm').reset();
+      postModal.classList.add('hidden');
+      renderApp();
+      showToast("Rally added!");
+    });
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastMsg').innerText = msg;
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      setTimeout(() => { toast.classList.add('translate-y-20', 'opacity-0'); }, 2500);
+    }
+
+    // Launch immediately on load
+    window.addEventListener('load', () => {
+      initMap();
+      renderApp();
+    });
+  </script>
+</body>
+</html>
