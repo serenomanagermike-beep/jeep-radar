@@ -1,692 +1,1088 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#10171d">
-<title>Gulf Coast Jeep Grid</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>JeepRadar - Pinellas & Tampa Bay</title>
 
-<link rel="stylesheet"
- href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <!-- Leaflet 1.9.4 CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
 
-<style>
-:root {
-  --bg:#10171d; --panel:#19232b; --panel2:#222e37;
-  --green:#32d583; --text:#f3f7f9; --muted:#a8b5bf;
-  --border:#34434e; --red:#ff6565;
-}
-* { box-sizing:border-box; }
-body {
-  margin:0; background:var(--bg); color:var(--text);
-  font-family:system-ui,Arial,sans-serif;
-}
-header {
-  padding:16px; background:#151f26;
-  border-bottom:1px solid var(--border);
-}
-.brand { display:flex; align-items:center; gap:12px; }
-.logo {
-  width:44px; height:44px; display:grid; place-items:center;
-  border-radius:10px; background:#183b2c; color:var(--green);
-  font-size:25px;
-}
-h1 { font-size:19px; margin:0; }
-.subtitle { color:var(--muted); font-size:12px; margin-top:3px; }
-.status { color:var(--green); font-size:11px; margin-top:12px; }
-.toolbar,.filters {
-  display:flex; flex-wrap:wrap; gap:8px; padding:12px;
-}
-.filters { padding-top:0; overflow-x:auto; flex-wrap:nowrap; }
-button,input,select,textarea { font:inherit; }
-button {
-  border:1px solid var(--border); background:var(--panel2);
-  color:var(--text); padding:10px 12px; border-radius:9px;
-  font-size:13px; font-weight:650; cursor:pointer; min-height:42px;
-}
-button.primary {
-  background:var(--green); color:#062516; border-color:var(--green);
-}
-button.active { color:var(--green); border-color:var(--green); }
-button:disabled { opacity:.5; cursor:not-allowed; }
-button:focus-visible,input:focus-visible,select:focus-visible,
-textarea:focus-visible {
-  outline:2px solid var(--green); outline-offset:2px;
-}
-.filters button { white-space:nowrap; }
-main { padding:0 12px 20px; max-width:1100px; margin:auto; }
-#map {
-  height:55vh; min-height:320px; max-height:650px; width:100%;
-  border:1px solid var(--border); border-radius:12px;
-  background:#202b33; z-index:1;
-}
-.leaflet-container { background:#202b33; }
-.leaflet-popup-content-wrapper,.leaflet-popup-tip {
-  background:#19232b; color:var(--text);
-}
-.leaflet-popup-content { line-height:1.6; overflow-wrap:anywhere; }
-.leaflet-popup-content a { color:var(--green); }
-.leaflet-control-zoom a {
-  background:#19232b!important; color:white!important;
-  border-color:var(--border)!important;
-}
-.section-title { font-size:15px; margin:20px 0 10px; }
-.panel,.card {
-  background:var(--panel); border:1px solid var(--border);
-  border-radius:11px; padding:14px;
-}
-.form-grid { display:grid; grid-template-columns:1fr; gap:12px; }
-.field { display:flex; flex-direction:column; gap:5px; }
-label { font-size:12px; font-weight:700; color:var(--muted); }
-input,select,textarea {
-  width:100%; color:var(--text); background:#10171d;
-  border:1px solid var(--border); border-radius:8px; padding:11px;
-}
-textarea { min-height:75px; resize:vertical; }
-.help,.note {
-  font-size:12px; line-height:1.55; color:var(--muted);
-}
-.actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
-.actions button { flex:1; }
-.cards { display:grid; grid-template-columns:1fr; gap:10px; }
-.card h3 { font-size:14px; margin:0 0 7px; }
-.card p { font-size:13px; line-height:1.5; color:var(--muted); }
-.tag {
-  display:inline-block; font-size:10px; color:var(--green);
-  border:1px solid #286b4b; border-radius:5px; padding:4px 6px;
-}
-#message {
-  padding:0 12px; color:var(--green); font-size:12px;
-  min-height:22px; overflow-wrap:anywhere;
-}
-.radar {
-  display:inline-block; height:12px; width:12px; border-radius:50%;
-  background:var(--green); vertical-align:middle;
-}
-.radar.on { animation:pulse 1.6s infinite; }
-@keyframes pulse {
-  70% { box-shadow:0 0 0 12px #32d58300; }
-}
-footer {
-  border-top:1px solid var(--border); padding:15px;
-  text-align:center; color:var(--muted); font-size:11px;
-}
-.hidden { display:none!important; }
-#connection { color:#ffbd59; }
-@media(min-width:700px) {
-  .cards { grid-template-columns:repeat(2,minmax(0,1fr)); }
-  .form-grid { grid-template-columns:1fr 1fr; }
-  .wide { grid-column:1/-1; }
-  #map { height:65vh; }
-  .toolbar,.filters { padding-left:max(12px,calc((100% - 1100px)/2)); }
-}
-</style>
+  <style>
+    :root {
+      --bg-dark: #111418;
+      --bg-panel: #1b2026;
+      --bg-card: #242b33;
+      --border: #333d49;
+      --amber: #ff9800;
+      --green: #4caf50;
+      --cyan: #00e5ff;
+      --red: #ff3b30;
+      --yellow: #ffd600;
+      --text-main: #f0f4f8;
+      --text-muted: #9aa6b5;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100dvh;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      overflow: hidden;
+    }
+
+    #app {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100dvh;
+      position: relative;
+    }
+
+    /* Top Navigation Bar */
+    header {
+      height: 58px;
+      background: var(--bg-panel);
+      border-bottom: 2px solid var(--amber);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      z-index: 1000;
+      flex-shrink: 0;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.6);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 800;
+      font-size: 1.1rem;
+      letter-spacing: 0.5px;
+      color: #fff;
+    }
+    .brand span {
+      color: var(--amber);
+    }
+
+    .sync-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      display: inline-block;
+      margin-left: 4px;
+      box-shadow: 0 0 6px var(--green);
+    }
+    .sync-dot.local {
+      background: var(--amber);
+      box-shadow: 0 0 6px var(--amber);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 7px 10px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+    }
+    .btn:active {
+      transform: scale(0.96);
+    }
+    .btn-amber {
+      background: var(--amber);
+      border-color: var(--amber);
+      color: #111418;
+      font-weight: 700;
+    }
+    .btn-admin.unlocked {
+      border-color: var(--green);
+      color: var(--green);
+    }
+    .badge-count {
+      background: var(--red);
+      color: #fff;
+      font-size: 0.7rem;
+      padding: 1px 5px;
+      border-radius: 10px;
+      font-weight: 800;
+    }
+
+    /* Filter Chips Bar */
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: #15191e;
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+      white-space: nowrap;
+      flex-shrink: 0;
+      z-index: 1000;
+    }
+    .filter-bar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .chip {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 5px 12px;
+      border-radius: 18px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .chip.active {
+      background: var(--amber);
+      border-color: var(--amber);
+      color: #111418;
+    }
+    .chip-pending {
+      border-color: var(--yellow);
+      color: var(--yellow);
+      display: none;
+    }
+    .chip-pending.active {
+      background: var(--yellow);
+      color: #111418;
+    }
+
+    /* Map Container */
+    #map {
+      flex: 1;
+      width: 100%;
+      min-height: 200px;
+      background: #0d1013;
+      z-index: 1;
+    }
+
+    /* Map Tap Instruction Pill */
+    .map-hint {
+      position: absolute;
+      top: 108px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(27, 32, 38, 0.92);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.74rem;
+      z-index: 900;
+      pointer-events: none;
+      white-space: nowrap;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    }
+
+    /* Collapsible Bottom Drawer */
+    .drawer {
+      background: var(--bg-panel);
+      border-top: 2px solid var(--border);
+      border-radius: 16px 16px 0 0;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      max-height: 42dvh;
+      transition: max-height 0.25s ease;
+      flex-shrink: 0;
+      box-shadow: 0 -4px 16px rgba(0,0,0,0.6);
+    }
+    .drawer.collapsed {
+      max-height: 44px;
+    }
+    .drawer-header {
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .drawer-title {
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: var(--amber);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .drawer-toggle-txt {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .event-list {
+      overflow-y: auto;
+      padding: 10px 14px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .event-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 13px;
+      cursor: pointer;
+      position: relative;
+    }
+    .event-card:active {
+      border-color: var(--amber);
+    }
+    .event-card.pending-card {
+      border: 1px dashed var(--yellow);
+      background: rgba(255, 214, 0, 0.06);
+    }
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    .event-card h4 {
+      font-size: 0.94rem;
+      color: #fff;
+      line-height: 1.25;
+    }
+    .type-pill {
+      font-size: 0.68rem;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+    .pill-hangout { background: rgba(76,175,80,0.2); color: var(--green); }
+    .pill-meet { background: rgba(255,152,0,0.2); color: var(--amber); }
+    .pill-trail { background: rgba(0,229,255,0.2); color: var(--cyan); }
+
+    .card-meta {
+      font-size: 0.76rem;
+      color: var(--amber);
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .card-desc {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.35;
+    }
+    .card-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 9px;
+      padding-top: 8px;
+      border-top: 1px solid var(--border);
+    }
+    .btn-sm {
+      padding: 4px 10px;
+      font-size: 0.72rem;
+      border-radius: 4px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+    }
+    .btn-approve { background: var(--green); color: #000; }
+    .btn-delete { background: var(--red); color: #fff; }
+
+    /* Modals */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      z-index: 2000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-backdrop.open {
+      display: flex;
+    }
+    .modal {
+      background: var(--bg-panel);
+      border: 1px solid var(--amber);
+      border-radius: 12px;
+      width: 100%;
+      max-width: 430px;
+      max-height: 90dvh;
+      overflow-y: auto;
+      padding: 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    }
+    .modal h3 {
+      font-size: 1.05rem;
+      color: var(--amber);
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .form-group {
+      margin-bottom: 12px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+    .form-control {
+      width: 100%;
+      background: var(--bg-dark);
+      border: 1px solid var(--border);
+      color: #fff;
+      padding: 9px 11px;
+      border-radius: 6px;
+      font-size: 0.88rem;
+    }
+    .form-control:focus {
+      outline: none;
+      border-color: var(--amber);
+    }
+    .radio-row {
+      display: flex;
+      gap: 8px;
+    }
+    .radio-btn {
+      flex: 1;
+      text-align: center;
+      padding: 8px;
+      background: var(--bg-dark);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+    .radio-btn.active {
+      border-color: var(--amber);
+      background: rgba(255,152,0,0.15);
+      color: var(--amber);
+    }
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    /* Toast Notification */
+    #toast {
+      position: fixed;
+      top: 70px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1b2026;
+      border: 1px solid var(--amber);
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      z-index: 3000;
+      display: none;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.7);
+      text-align: center;
+      max-width: 90%;
+    }
+
+    /* Custom Leaflet Dark Popup */
+    .leaflet-popup-content-wrapper {
+      background: var(--bg-panel) !important;
+      color: var(--text-main) !important;
+      border: 1px solid var(--amber);
+      border-radius: 8px !important;
+    }
+    .leaflet-popup-tip {
+      background: var(--bg-panel) !important;
+    }
+  </style>
 </head>
 <body>
 
-<header>
-  <div class="brand">
-    <div class="logo">🛞</div>
-    <div>
-      <h1>GULF COAST JEEP GRID</h1>
-      <div class="subtitle">PINELLAS COUNTY · TAMPA BAY · FLORIDA</div>
+<div id="app">
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff9800" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+      </svg>
+      JEEP<span>RADAR</span>
+      <span id="sync-dot" class="sync-dot local" title="Sync Status"></span>
     </div>
-  </div>
-  <div class="status">
-    <span class="radar" id="radarLight"></span>
-    &nbsp; GRID READY · <span id="gpsStatus">GPS STANDBY</span>
-    <div id="connection">DATABASE NOT CONFIGURED</div>
-  </div>
-</header>
 
-<div class="toolbar">
-  <button class="primary" id="locateBtn">◎ LOCATE MY RIG</button>
-  <button id="addPinBtn">＋ SUBMIT LINK / PIN</button>
-  <button id="shareBtn">↗ SHARE MAP</button>
-  <button id="radarBtn">◉ RADAR: OFF</button>
-  <button id="resetBtn">⌖ RESET GRID</button>
+    <div class="header-actions">
+      <button class="btn btn-amber" id="btn-add-open">+ Submit</button>
+      <button class="btn" id="btn-locate" title="My GPS Location">GPS</button>
+      <button class="btn btn-admin" id="btn-admin">
+        <span id="admin-label">Admin</span>
+        <span id="pending-badge" class="badge-count" style="display:none;">0</span>
+      </button>
+      <button class="btn" id="btn-cloud" title="Cloud Sync Settings">⚙️</button>
+    </div>
+  </header>
+
+  <!-- Category Filters -->
+  <div class="filter-bar">
+    <button class="chip active" data-filter="all">All Approved</button>
+    <button class="chip" data-filter="hangout">Hangouts</button>
+    <button class="chip" data-filter="meet">Meets & Cruises</button>
+    <button class="chip" data-filter="trail">Trails & Sand</button>
+    <button class="chip" data-filter="dated">Upcoming Dates</button>
+    <button class="chip chip-pending" id="chip-pending" data-filter="pending">⏳ Pending Review</button>
+  </div>
+
+  <!-- Interactive Map -->
+  <div id="map"></div>
+  <div class="map-hint">Tap anywhere on map to submit a meetup spot</div>
+
+  <!-- Bottom Event Feed Drawer -->
+  <div class="drawer" id="drawer">
+    <div class="drawer-header" id="drawer-toggle">
+      <div class="drawer-title">
+        <span>Pinellas & Tampa Bay Radar</span>
+        <span id="spot-count" style="color:#fff;font-weight:600;">(0)</span>
+      </div>
+      <div class="drawer-toggle-txt" id="drawer-toggle-txt">▼ Hide</div>
+    </div>
+    <div class="event-list" id="event-list"></div>
+  </div>
 </div>
 
-<div class="filters" aria-label="Map filters">
-  <button class="active" data-filter="All">ALL ACTIVITY</button>
-  <button data-filter="St. Pete Beach Jeepers">ST. PETE BEACH JEEPERS</button>
-  <button data-filter="Sunshine City Jeep Crew">SUNSHINE CITY</button>
-  <button data-filter="Tampa Bay Jeep Club">TAMPA BAY JEEP CLUB</button>
-  <button data-filter="Community">COMMUNITY</button>
-</div>
+<!-- Toast Alert -->
+<div id="toast"></div>
 
-<div id="message" role="status" aria-live="polite"></div>
+<!-- Modal 1: Submit New Event / Meetup -->
+<div class="modal-backdrop" id="modal-add">
+  <div class="modal">
+    <h3>
+      <span id="modal-add-title">Submit Jeep Meetup / Spot</span>
+    </h3>
+    <form id="form-event">
+      <input type="hidden" id="ev-lat">
+      <input type="hidden" id="ev-lng">
 
-<main>
-  <div id="map" aria-label="Interactive Jeep community map"></div>
+      <div class="form-group">
+        <label>Event or Spot Title *</label>
+        <input type="text" id="ev-title" class="form-control" placeholder="e.g., Sunset Beach Lineup" required>
+      </div>
 
-  <section id="submission" class="panel hidden" style="margin-top:14px">
-    <h2 class="section-title" style="margin-top:0">SUBMIT A COMMUNITY LINK</h2>
-    <p class="help">
-      Share a Jeep event, club page, meetup, wrench night, or duck drop.
-      Choose a location on the map or use GPS. Submissions are reviewed
-      before they appear publicly.
-    </p>
-    <form id="submitForm">
-      <div class="form-grid">
-        <div class="field">
-          <label for="linkTitle">LINK / EVENT TITLE *</label>
-          <input id="linkTitle" maxlength="100" required
-            placeholder="Saturday Jeep meetup">
-        </div>
-        <div class="field">
-          <label for="linkUrl">WEB LINK (URL) *</label>
-          <input id="linkUrl" type="url" maxlength="1500" required
-            placeholder="https://...">
-        </div>
-        <div class="field">
-          <label for="linkClub">CLUB / CATEGORY *</label>
-          <select id="linkClub" required>
-            <option value="Community">Community</option>
-            <option value="St. Pete Beach Jeepers">St. Pete Beach Jeepers</option>
-            <option value="Sunshine City Jeep Crew">Sunshine City Jeep Crew</option>
-            <option value="Tampa Bay Jeep Club">Tampa Bay Jeep Club</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>SELECTED MAP LOCATION</label>
-          <input id="selectedLocation" readonly
-            placeholder="Choose map location or GPS">
-          <div class="actions">
-            <button type="button" id="chooseMapBtn">PICK ON MAP</button>
-            <button type="button" id="formGpsBtn">USE GPS</button>
-          </div>
-        </div>
-        <div class="field wide">
-          <label for="linkDescription">DESCRIPTION / DETAILS</label>
-          <textarea id="linkDescription" maxlength="1000"
-            placeholder="Date, time, meetup details, or notes"></textarea>
+      <div class="form-group">
+        <label>Club or Host Name *</label>
+        <input type="text" id="ev-club" class="form-control" placeholder="e.g., St. Pete Beach Jeepers" required>
+      </div>
+
+      <div class="form-group">
+        <label>Category</label>
+        <select id="ev-type" class="form-control">
+          <option value="hangout">Hangout / Tailgate (Green Pin)</option>
+          <option value="meet">Meet & Cruise (Amber Pin)</option>
+          <option value="trail">Trail / Beach Sand (Cyan Pin)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Schedule Type</label>
+        <div class="radio-row">
+          <div class="radio-btn active" id="sched-recurring">Recurring / Permanent</div>
+          <div class="radio-btn" id="sched-onetime">One-Time Date</div>
         </div>
       </div>
-      <p class="help" id="pinHelp">No location selected yet.</p>
-      <div class="actions">
-        <button class="primary" type="submit" id="submitBtn">
-          SEND FOR APPROVAL
-        </button>
-        <button type="button" id="cancelFormBtn">CANCEL</button>
+
+      <div class="form-group" id="group-recurring">
+        <label>Recurring Schedule *</label>
+        <input type="text" id="ev-schedule" class="form-control" placeholder="e.g., Every Friday @ Sunset">
+      </div>
+
+      <div class="form-group" id="group-onetime" style="display:none;">
+        <label>Event Date & Start Time * (Auto-Deletes After Date Passes)</label>
+        <div style="display:flex; gap:8px;">
+          <input type="date" id="ev-date" class="form-control">
+          <input type="time" id="ev-time" class="form-control" value="18:00">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Details / Parking Notes *</label>
+        <textarea id="ev-desc" class="form-control" rows="2" placeholder="Where to park, radio channel, etc." required></textarea>
+      </div>
+
+      <div class="form-group" style="font-size:0.74rem; color:var(--text-muted);" id="coord-preview">
+        Location: Center of current map view (or tap map first)
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn" id="btn-add-cancel">Cancel</button>
+        <button type="submit" class="btn btn-amber">Submit Event</button>
       </div>
     </form>
-  </section>
-
-  <h2 class="section-title">COMMUNITY ACTIVITY</h2>
-  <div class="help">Only approved community links are displayed below and on the map.</div>
-  <div class="cards" id="eventCards" style="margin-top:10px"></div>
-
-  <h2 class="section-title">MAP LEGEND & QUICK TOOLS</h2>
-  <div class="panel">
-    <p class="help">🟢 St. Pete Beach Jeepers · 🔵 Sunshine City · 🟠 Tampa Bay Jeep Club · 🟣 Community link · 🔴 Your rig</p>
-    <div class="actions">
-      <button id="shareLocationBtn">SHARE MAP CENTER</button>
-      <button id="refreshBtn">REFRESH APPROVED LINKS</button>
-    </div>
-    <p class="note">
-      GPS requires permission and HTTPS. Your location is not published unless
-      you deliberately submit it with a link. The radar switch is a visual
-      indicator, not a live event scanner. The map uses external tile services.
-    </p>
   </div>
-</main>
+</div>
 
-<footer>GULF COAST JEEP GRID · COMMUNITY LINKS REQUIRE APPROVAL</footer>
+<!-- Modal 2: Cloud Sync Setup (JSONBin.io) -->
+<div class="modal-backdrop" id="modal-cloud">
+  <div class="modal">
+    <h3>JSONBin.io Cloud Sync Setup</h3>
+    <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:12px; line-height:1.4;">
+      Connect your free <b>JSONBin.io</b> account so all Jeeper phones share the same live map and Admin approval queue.
+    </p>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <div class="form-group">
+      <label>JSONBin X-Master-Key (or X-Access-Key)</label>
+      <input type="password" id="cloud-key" class="form-control" placeholder="$2a$10$...">
+    </div>
+
+    <div class="form-group">
+      <label>JSONBin Bin ID (Leave blank to create a new Bin)</label>
+      <input type="text" id="cloud-bin" class="form-control" placeholder="e.g., 6710a8bc...">
+    </div>
+
+    <div style="display:flex; gap:8px; margin-bottom:12px;">
+      <button type="button" class="btn btn-amber" id="btn-create-bin" style="width:100%; justify-content:center;">
+        Auto-Create New Bin with My Key
+      </button>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn" id="btn-cloud-close">Close</button>
+      <button type="button" class="btn btn-amber" id="btn-cloud-save">Save & Sync Now</button>
+    </div>
+  </div>
+</div>
+
+<!-- Leaflet 1.9.4 JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
 <script>
-(function () {
-"use strict";
+  /********************************************************************
+   * 1. HARDCODED CONFIG (OPTIONAL)
+   * Once you get your JSONBin Key and Bin ID, you can paste them inside
+   * the quotes below so every friend's phone connects automatically!
+   ********************************************************************/
+  const DEFAULT_JSONBIN_KEY = ""; // Paste your JSONBin Key here later
+  const DEFAULT_JSONBIN_BIN = ""; // Paste your JSONBin Bin ID here later
+  const ADMIN_PIN = "1974";       // Your secret Admin PIN to approve/delete events
 
-/*
-  SETUP: Replace both placeholders below with your Supabase project URL
-  and publishable key (or legacy anon public key).
-  NEVER put a service_role key or secret key in this file.
-*/
-const SUPABASE_URL = "PASTE_YOUR_SUPABASE_PROJECT_URL_HERE";
-const SUPABASE_PUBLIC_KEY = "PASTE_YOUR_SUPABASE_PUBLISHABLE_KEY_HERE";
+  // Default Pre-Approved Pinellas & Tampa Bay Jeep Spots
+  const DEFAULT_SPOTS = [
+    {
+      id: "spot-1",
+      title: "Pass-a-Grille Sunset Tailgate",
+      club: "St. Pete Beach Jeepers",
+      type: "hangout",
+      isRecurring: true,
+      schedule: "Weekends @ Sunset",
+      eventDate: "",
+      eventTime: "",
+      lat: 27.6896,
+      lng: -82.7388,
+      desc: "South end beach parking lot lineup for sunset hangout.",
+      status: "approved"
+    },
+    {
+      id: "spot-2",
+      title: "St. Pete Pier Approach Staging",
+      club: "Sunshine City Jeep Crew",
+      type: "meet",
+      isRecurring: true,
+      schedule: "Every Friday 7:30 PM",
+      eventDate: "",
+      eventTime: "",
+      lat: 27.7719,
+      lng: -82.6288,
+      desc: "Downtown waterfront meetup and Central Ave cruise staging.",
+      status: "approved"
+    },
+    {
+      id: "spot-3",
+      title: "Gandy Beach Sand Line",
+      club: "Tampa Bay Jeep Club",
+      type: "trail",
+      isRecurring: true,
+      schedule: "Open Daily (Best at Low Tide)",
+      eventDate: "",
+      eventTime: "",
+      lat: 27.8732,
+      lng: -82.5714,
+      desc: "Waterfront sand pull-in and tailgate stretch on the causeway.",
+      status: "approved"
+    },
+    {
+      id: "spot-4",
+      title: "Courtney Campbell Causeway Ramp",
+      club: "Tampa Bay Jeep Club",
+      type: "hangout",
+      isRecurring: true,
+      schedule: "Sundays 10:00 AM",
+      eventDate: "",
+      eventTime: "",
+      lat: 27.9691,
+      lng: -82.6025,
+      desc: "Bayfront meetup and staging lot by the boat ramp.",
+      status: "approved"
+    },
+    {
+      id: "spot-5",
+      title: "Madeira Beach Causeway Marina Lot",
+      club: "St. Pete Beach Jeepers",
+      type: "meet",
+      isRecurring: true,
+      schedule: "Saturday Mornings",
+      eventDate: "",
+      eventTime: "",
+      lat: 27.7995,
+      lng: -82.7937,
+      desc: "Intracoastal breeze meetup before heading down Gulf Blvd.",
+      status: "approved"
+    }
+  ];
 
-const DEFAULT_CENTER = [27.7428, -82.7505];
-const DEFAULT_ZOOM = 11;
+  // App State
+  let spots = [];
+  let isAdmin = false;
+  let currentFilter = "all";
+  let isRecurringMode = true;
+  let markersLayer = [];
+  let userMarker = null;
 
-const colors = {
-  "St. Pete Beach Jeepers": "#32d583",
-  "Sunshine City Jeep Crew": "#48b9ff",
-  "Tampa Bay Jeep Club": "#ffbd59",
-  "Community": "#d78cff",
-  "You": "#ff6565"
-};
+  // Load Credentials
+  function getCloudConfig() {
+    return {
+      key: localStorage.getItem("jr_bin_key") || DEFAULT_JSONBIN_KEY,
+      bin: localStorage.getItem("jr_bin_id") || DEFAULT_JSONBIN_BIN
+    };
+  }
 
-const map = L.map("map", {
-  zoomControl: true,
-  preferCanvas: true
-}).setView(DEFAULT_CENTER, DEFAULT_ZOOM);
+  // Toast Helper
+  function showToast(msg) {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.style.display = "block";
+    clearTimeout(window._toastTimer);
+    window._toastTimer = setTimeout(() => { t.style.display = "none"; }, 3800);
+  }
 
-L.tileLayer(
-  "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-  {
+  /********************************************************************
+   * 2. MAP INITIALIZATION (CartoDB Dark Matter - Zero 403 Errors)
+   ********************************************************************/
+  const map = L.map("map", { zoomControl: false }).setView([27.82, -82.68], 11);
+  L.control.zoom({ position: "topright" }).addTo(map);
+
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
     subdomains: "abcd",
-    maxZoom: 20,
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    maxZoom: 19,
+    attribution: "&copy; OpenStreetMap &copy; CARTO"
+  }).addTo(map);
+
+  // Fix Grey-Box Mobile Viewport Calculation
+  function fixMapSize() {
+    setTimeout(() => { map.invalidateSize(); }, 250);
   }
-).addTo(map);
+  window.addEventListener("load", fixMapSize);
+  window.addEventListener("resize", fixMapSize);
+  window.addEventListener("orientationchange", fixMapSize);
 
-const linkLayer = L.layerGroup().addTo(map);
-const userLayer = L.layerGroup().addTo(map);
-
-let supabase = null;
-let approvedLinks = [];
-let activeFilter = "All";
-let choosingLocation = false;
-let selectedCoords = null;
-let gpsCoords = null;
-let radarOn = false;
-let loading = false;
-
-const $ = id => document.getElementById(id);
-const message = $("message");
-
-function say(text) {
-  message.textContent = text;
-}
-
-function validHttpUrl(value) {
-  try {
-    const u = new URL(value);
-    return u.protocol === "https:" || u.protocol === "http:";
-  } catch (_) {
-    return false;
-  }
-}
-
-function safeUrl(value) {
-  if (!validHttpUrl(value)) return null;
-  return new URL(value).href;
-}
-
-function escapeHTML(value) {
-  return String(value ?? "").replace(/[&<>"']/g, c => ({
-    "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
-  }[c]));
-}
-
-function configured() {
-  return SUPABASE_URL.startsWith("https://") &&
-    !SUPABASE_URL.includes("PASTE_YOUR") &&
-    SUPABASE_PUBLIC_KEY.length > 20 &&
-    !SUPABASE_PUBLIC_KEY.includes("PASTE_YOUR") &&
-    window.supabase;
-}
-
-if (configured()) {
-  try {
-    supabase = window.supabase.createClient(
-      SUPABASE_URL, SUPABASE_PUBLIC_KEY
-    );
-    $("connection").textContent = "DATABASE CONFIGURED · CHECKING CONNECTION";
-  } catch (error) {
-    $("connection").textContent = "DATABASE SETUP ERROR";
-  }
-} else {
-  $("connection").textContent = "DATABASE NOT CONFIGURED";
-}
-
-function markerIcon(color, symbol) {
-  return L.divIcon({
-    className: "",
-    html:
-      '<div style="width:34px;height:34px;border-radius:50% 50% 50% 0;' +
-      'transform:rotate(-45deg);background:' + color + ';border:2px solid white;' +
-      'box-shadow:0 2px 9px #0009;display:grid;place-items:center">' +
-      '<span style="transform:rotate(45deg);font-size:15px">' +
-      symbol + '</span></div>',
-    iconSize: [34,34],
-    iconAnchor: [17,34],
-    popupAnchor: [0,-32]
-  });
-}
-
-function popupContent(item) {
-  const link = safeUrl(item.url);
-  const coords = Number(item.lat).toFixed(6) + ", " +
-    Number(item.lng).toFixed(6);
-
-  return "<strong>" + escapeHTML(item.title) + "</strong><br>" +
-    '<span style="color:#32d583">' + escapeHTML(item.club) + "</span><br>" +
-    escapeHTML(item.description || "Community link") +
-    "<br><small>" + coords + "</small><br>" +
-    (link
-      ? '<p><a href="' + escapeHTML(link) +
-        '" target="_blank" rel="noopener noreferrer">OPEN SUBMITTED LINK ↗</a></p>'
-      : "") +
-    '<a href="https://www.google.com/maps?q=' +
-    encodeURIComponent(coords) +
-    '" target="_blank" rel="noopener noreferrer">OPEN LOCATION IN MAPS</a>';
-}
-
-function renderLinks() {
-  linkLayer.clearLayers();
-  const shown = approvedLinks.filter(item =>
-    activeFilter === "All" || item.club === activeFilter
-  );
-
-  shown.forEach(item => {
-    const lat = Number(item.lat);
-    const lng = Number(item.lng);
-    if (!Number.isFinite(lat) || !Number.isFinite(lng) ||
-        lat < -90 || lat > 90 || lng < -180 || lng > 180) return;
-
-    const color = colors[item.club] || colors.Community;
-    L.marker([lat,lng], {
-      icon: markerIcon(color, "↗")
-    }).addTo(linkLayer).bindPopup(popupContent(item));
-  });
-
-  const cards = $("eventCards");
-  cards.replaceChildren();
-
-  if (!shown.length) {
-    const empty = document.createElement("div");
-    empty.className = "card";
-    empty.textContent = supabase
-      ? "No approved links in this category yet. Be the first to submit one."
-      : "Configure Supabase to load shared community links.";
-    cards.appendChild(empty);
-    return;
+  // Custom Glowing Pin Icons
+  function makePin(color, isPending = false) {
+    const border = isPending ? "2px dashed #ffd600" : "2px solid #ffffff";
+    return L.divIcon({
+      className: "custom-pin",
+      html: `<div style="background:${color}; width:16px; height:16px; border-radius:50%; border:${border}; box-shadow: 0 0 10px ${color};"></div>`,
+      iconSize: [18, 18],
+      iconAnchor: [9, 9]
+    });
   }
 
-  shown.forEach(item => {
-    const card = document.createElement("article");
-    card.className = "card";
+  const ICONS = {
+    hangout: makePin("#4caf50"),
+    meet: makePin("#ff9800"),
+    trail: makePin("#00e5ff"),
+    pending: makePin("#ffd600", true),
+    user: makePin("#ff3b30")
+  };
 
-    const tag = document.createElement("span");
-    tag.className = "tag";
-    tag.textContent = item.club || "Community";
+  /********************************************************************
+   * 3. AUTOMATIC EXPIRATION OF PAST ONE-TIME EVENTS
+   ********************************************************************/
+  function purgeExpiredEvents(list) {
+    const now = new Date();
+    // Get today's date string in YYYY-MM-DD local time
+    const todayStr = now.getFullYear() + "-" +
+      String(now.getMonth() + 1).padStart(2, "0") + "-" +
+      String(now.getDate()).padStart(2, "0");
 
-    const title = document.createElement("h3");
-    title.textContent = item.title;
+    let changed = false;
+    const cleaned = list.filter(item => {
+      // Recurring meetups stay forever until deleted
+      if (item.isRecurring) return true;
+      if (!item.eventDate) return true;
+      // If eventDate is strictly before today, purge it automatically
+      if (item.eventDate < todayStr) {
+        changed = true;
+        return false;
+      }
+      return true;
+    });
 
-    const description = document.createElement("p");
-    description.textContent = item.description || "Community link";
+    return { cleaned, changed };
+  }
 
-    const actions = document.createElement("div");
-    actions.className = "actions";
+  /********************************************************************
+   * 4. CLOUD SYNC (JSONBin.io) + LOCAL STORAGE FALLBACK
+   ********************************************************************/
+  async function loadEvents() {
+    const cfg = getCloudConfig();
+    const dot = document.getElementById("sync-dot");
 
-    const view = document.createElement("button");
-    view.textContent = "VIEW ON MAP";
-    view.addEventListener("click", () => {
-      map.flyTo([Number(item.lat), Number(item.lng)], 15);
-      linkLayer.eachLayer(marker => {
-        const p = marker.getLatLng();
-        if (Math.abs(p.lat - Number(item.lat)) < 0.000001 &&
-            Math.abs(p.lng - Number(item.lng)) < 0.000001) {
-          marker.openPopup();
+    if (cfg.key && cfg.bin) {
+      try {
+        const res = await fetch(`https://api.jsonbin.io/v3/b/${cfg.bin}/latest`, {
+          headers: { "X-Master-Key": cfg.key, "X-Access-Key": cfg.key }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const rawList = Array.isArray(data.record) ? data.record : (data.record.spots || DEFAULT_SPOTS);
+          const { cleaned, changed } = purgeExpiredEvents(rawList);
+          spots = cleaned;
+          localStorage.setItem("jr_spots_cache", JSON.stringify(spots));
+          dot.className = "sync-dot";
+          dot.title = "Cloud Synced with JSONBin";
+          if (changed) {
+            saveEventsToCloud(false); // Silently clean expired dates in cloud
+          }
+          renderAll();
+          return;
+        }
+      } catch (err) {
+        console.warn("Cloud fetch fallback to local cache:", err);
+      }
+    }
+
+    // Fallback to localStorage if cloud not configured yet
+    dot.className = "sync-dot local";
+    dot.title = "Local Storage Mode (Click Gear Icon to link JSONBin)";
+    const cached = localStorage.getItem("jr_spots_cache");
+    const initial = cached ? JSON.parse(cached) : DEFAULT_SPOTS;
+    const { cleaned } = purgeExpiredEvents(initial);
+    spots = cleaned;
+    localStorage.setItem("jr_spots_cache", JSON.stringify(spots));
+    renderAll();
+  }
+
+  async function saveEventsToCloud(notify = true) {
+    const { cleaned } = purgeExpiredEvents(spots);
+    spots = cleaned;
+    localStorage.setItem("jr_spots_cache", JSON.stringify(spots));
+
+    const cfg = getCloudConfig();
+    if (!cfg.key || !cfg.bin) {
+      renderAll();
+      return;
+    }
+
+    try {
+      const res = await fetch(`https://api.jsonbin.io/v3/b/${cfg.bin}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Master-Key": cfg.key,
+          "X-Access-Key": cfg.key
+        },
+        body: JSON.stringify({ spots: spots })
+      });
+      if (res.ok && notify) {
+        document.getElementById("sync-dot").className = "sync-dot";
+      }
+    } catch (e) {
+      if (notify) showToast("Saved on phone (Cloud offline)");
+    }
+    renderAll();
+  }
+
+  /********************************************************************
+   * 5. RENDER MAP PINS & BOTTOM DRAWER
+   ********************************************************************/
+  function renderAll() {
+    // Clear existing map markers
+    markersLayer.forEach(m => map.removeLayer(m));
+    markersLayer = [];
+
+    const listEl = document.getElementById("event-list");
+    listEl.innerHTML = "";
+
+    // Count Pending Approvals for Admin Badge
+    const pendingCount = spots.filter(s => s.status === "pending").length;
+    const badge = document.getElementById("pending-badge");
+    if (pendingCount > 0) {
+      badge.style.display = "inline-block";
+      badge.textContent = pendingCount;
+    } else {
+      badge.style.display = "none";
+    }
+
+    // Filter Visible Spots
+    const visibleSpots = spots.filter(s => {
+      // Public users NEVER see unapproved pending spots
+      if (!isAdmin && s.status === "pending") return false;
+
+      if (currentFilter === "pending") return s.status === "pending";
+      if (s.status === "pending" && currentFilter !== "all") return false;
+
+      if (currentFilter === "hangout") return s.type === "hangout";
+      if (currentFilter === "meet") return s.type === "meet";
+      if (currentFilter === "trail") return s.type === "trail";
+      if (currentFilter === "dated") return !s.isRecurring;
+      return true;
+    });
+
+    document.getElementById("spot-count").textContent = `(${visibleSpots.length})`;
+
+    visibleSpots.forEach(spot => {
+      const isPending = spot.status === "pending";
+      const icon = isPending ? ICONS.pending : (ICONS[spot.type] || ICONS.meet);
+
+      const timeLabel = spot.isRecurring
+        ? `🔁 ${spot.schedule || "Recurring Spot"}`
+        : `📅 ${spot.eventDate} @ ${spot.eventTime || "TBD"}`;
+
+      // Add Map Pin
+      const marker = L.marker([spot.lat, spot.lng], { icon }).addTo(map);
+      let popupHtml = `
+        <div style="min-width:180px;">
+          <div style="font-weight:800; color:#ff9800; font-size:0.92rem;">
+            ${isPending ? "⏳ [PENDING] " : ""}${spot.title}
+          </div>
+          <div style="font-size:0.75rem; color:#9aa6b5; margin:2px 0;">${spot.club}</div>
+          <div style="font-size:0.76rem; color:#4caf50; font-weight:700; margin-bottom:5px;">${timeLabel}</div>
+          <div style="font-size:0.8rem; color:#e1e7ec;">${spot.desc}</div>
+        </div>
+      `;
+      marker.bindPopup(popupHtml);
+      markersLayer.push(marker);
+
+      // Add Drawer Card
+      const card = document.createElement("div");
+      card.className = "event-card" + (isPending ? " pending-card" : "");
+
+      const pillClass = spot.type === "hangout" ? "pill-hangout" : (spot.type === "trail" ? "pill-trail" : "pill-meet");
+      const pillName = isPending ? "PENDING APPROVAL" : spot.type.toUpperCase();
+
+      let adminButtonsHtml = "";
+      if (isAdmin) {
+        adminButtonsHtml = `
+          <div class="card-actions">
+            ${isPending ? `<button class="btn-sm btn-approve" data-act="approve" data-id="${spot.id}">✓ Approve & Publish</button>` : ""}
+            <button class="btn-sm btn-delete" data-act="delete" data-id="${spot.id}">✕ Delete</button>
+          </div>
+        `;
+      }
+
+      card.innerHTML = `
+        <div class="card-top">
+          <h4>${spot.title}</h4>
+          <span class="type-pill ${pillClass}">${pillName}</span>
+        </div>
+        <div class="card-meta">${spot.club} • ${timeLabel}</div>
+        <div class="card-desc">${spot.desc}</div>
+        ${adminButtonsHtml}
+      `;
+
+      // Clicking card zooms to marker
+      card.addEventListener("click", (e) => {
+        if (e.target.tagName === "BUTTON") return;
+        map.setView([spot.lat, spot.lng], 14);
+        marker.openPopup();
+      });
+
+      listEl.appendChild(card);
+    });
+
+    // Attach Admin Approve / Delete button listeners
+    document.querySelectorAll("[data-act]").forEach(btn => {
+      btn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        const id = btn.getAttribute("data-id");
+        const act = btn.getAttribute("data-act");
+
+        if (act === "approve") {
+          const target = spots.find(x => x.id === id);
+          if (target) {
+            target.status = "approved";
+            showToast("Event Approved & Live on Map!");
+            await saveEventsToCloud();
+          }
+        } else if (act === "delete") {
+          if (confirm("Delete this event from JeepRadar?")) {
+            spots = spots.filter(x => x.id !== id);
+            showToast("Event Deleted.");
+            await saveEventsToCloud();
+          }
         }
       });
     });
+  }
 
-    const open = document.createElement("button");
-    open.textContent = "OPEN LINK ↗";
-    open.disabled = !safeUrl(item.url);
-    open.addEventListener("click", () => {
-      const url = safeUrl(item.url);
-      if (url) window.open(url, "_blank", "noopener,noreferrer");
-    });
+  /********************************************************************
+   * 6. SUBMIT NEW EVENT (Tap Map or Header Button)
+   ********************************************************************/
+  function openSubmitModal(lat, lng, fromTap = false) {
+    document.getElementById("ev-lat").value = lat.toFixed(5);
+    document.getElementById("ev-lng").value = lng.toFixed(5);
+    document.getElementById("coord-preview").textContent = fromTap
+      ? `📍 Pinned at tapped location (${lat.toFixed(4)}, ${lng.toFixed(4)})`
+      : `📍 Pinned at current map center (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
 
-    actions.append(view, open);
-    card.append(tag, title, description, actions);
-    cards.appendChild(card);
+    // Set default date picker to today
+    const now = new Date();
+    document.getElementById("ev-date").value = now.toISOString().split("T")[0];
+    document.getElementById("modal-add").classList.add("open");
+  }
+
+  map.on("click", (e) => {
+    openSubmitModal(e.latlng.lat, e.latlng.lng, true);
   });
-}
 
-async function loadApprovedLinks() {
-  if (!supabase) {
-    approvedLinks = [];
-    renderLinks();
-    return;
-  }
-  if (loading) return;
-  loading = true;
-  $("refreshBtn").disabled = true;
+  document.getElementById("btn-add-open").addEventListener("click", () => {
+    const c = map.getCenter();
+    openSubmitModal(c.lat, c.lng, false);
+  });
 
-  try {
-    const { data, error } = await supabase
-      .from("jeep_links")
-      .select("id,title,url,club,description,lat,lng,created_at")
-      .eq("status", "approved")
-      .order("created_at", { ascending: false })
-      .limit(500);
+  document.getElementById("btn-add-cancel").addEventListener("click", () => {
+    document.getElementById("modal-add").classList.remove("open");
+  });
 
-    if (error) throw error;
+  // Toggle Recurring vs One-Time Date in Form
+  document.getElementById("sched-recurring").addEventListener("click", () => {
+    isRecurringMode = true;
+    document.getElementById("sched-recurring").classList.add("active");
+    document.getElementById("sched-onetime").classList.remove("active");
+    document.getElementById("group-recurring").style.display = "block";
+    document.getElementById("group-onetime").style.display = "none";
+  });
 
-    approvedLinks = (data || []).filter(item => safeUrl(item.url));
-    $("connection").textContent = "DATABASE CONNECTED · APPROVED LINKS LOADED";
-    renderLinks();
-    say("Loaded " + approvedLinks.length + " approved community link(s).");
-  } catch (error) {
-    $("connection").textContent = "DATABASE CONNECTION FAILED";
-    say("Could not load links. Check the Supabase URL, key, SQL, and RLS policies.");
-    console.error("Supabase load error:", error);
-  } finally {
-    loading = false;
-    $("refreshBtn").disabled = false;
-  }
-}
+  document.getElementById("sched-onetime").addEventListener("click", () => {
+    isRecurringMode = false;
+    document.getElementById("sched-onetime").classList.add("active");
+    document.getElementById("sched-recurring").classList.remove("active");
+    document.getElementById("group-recurring").style.display = "none";
+    document.getElementById("group-onetime").style.display = "block";
+  });
 
-function showSubmission(open) {
-  $("submission").classList.toggle("hidden", !open);
-  if (open) {
-    $("submission").scrollIntoView({ behavior:"smooth", block:"start" });
-  } else {
-    choosingLocation = false;
-    $("chooseMapBtn").classList.remove("active");
-    say("Submission form closed.");
-  }
-}
+  // Handle Form Submission
+  document.getElementById("form-event").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const title = document.getElementById("ev-title").value.trim();
+    const club = document.getElementById("ev-club").value.trim();
+    const type = document.getElementById("ev-type").value;
+    const schedule = document.getElementById("ev-schedule").value.trim();
+    const eventDate = document.getElementById("ev-date").value;
+    const eventTime = document.getElementById("ev-time").value;
+    const desc = document.getElementById("ev-desc").value.trim();
+    const lat = parseFloat(document.getElementById("ev-lat").value);
+    const lng = parseFloat(document.getElementById("ev-lng").value);
 
-$("addPinBtn").addEventListener("click", () => {
-  if (!supabase) {
-    say("Configure Supabase first. See the setup instructions.");
-    showSubmission(true);
-    return;
-  }
-  showSubmission($("submission").classList.contains("hidden"));
-});
-
-$("cancelFormBtn").addEventListener("click", () => showSubmission(false));
-
-$("chooseMapBtn").addEventListener("click", () => {
-  choosingLocation = true;
-  $("chooseMapBtn").classList.add("active");
-  $("pinHelp").textContent = "Now tap the desired location on the map.";
-  say("Tap the map to choose a submission location.");
-});
-
-map.on("click", event => {
-  if (!choosingLocation) return;
-  selectedCoords = [event.latlng.lat, event.latlng.lng];
-  choosingLocation = false;
-  $("chooseMapBtn").classList.remove("active");
-  $("selectedLocation").value =
-    selectedCoords[0].toFixed(6) + ", " + selectedCoords[1].toFixed(6);
-  $("pinHelp").textContent = "Location selected. Submit when ready.";
-  say("Submission location selected.");
-});
-
-function getGps(successMessage) {
-  if (!navigator.geolocation) {
-    say("GPS is not supported by this browser.");
-    return;
-  }
-
-  say("Requesting GPS permission...");
-  navigator.geolocation.getCurrentPosition(position => {
-    const lat = position.coords.latitude;
-    const lng = position.coords.longitude;
-    gpsCoords = [lat,lng];
-
-    userLayer.clearLayers();
-    L.marker(gpsCoords, { icon:markerIcon(colors.You,"🚙") })
-      .addTo(userLayer)
-      .bindPopup("<strong>YOUR RIG</strong><br>" +
-        lat.toFixed(6) + ", " + lng.toFixed(6))
-      .openPopup();
-
-    map.flyTo(gpsCoords, 15);
-    $("gpsStatus").textContent = "GPS LOCKED";
-
-    if (!$("submission").classList.contains("hidden")) {
-      selectedCoords = gpsCoords;
-      $("selectedLocation").value =
-        lat.toFixed(6) + ", " + lng.toFixed(6);
-      $("pinHelp").textContent = "GPS location selected for this submission.";
+    if (!isRecurringMode && !eventDate) {
+      alert("Please pick a date for this one-time event.");
+      return;
     }
 
-    say(successMessage || "Your GPS position is displayed on your device only.");
-  }, error => {
-    const reasons = {
-      1:"Location permission denied. Allow access in your browser settings.",
-      2:"Position unavailable. Try again outdoors.",
-      3:"GPS timed out. Please try again."
+    // If Admin is unlocked, auto-approve; otherwise put in Pending Queue
+    const newStatus = isAdmin ? "approved" : "pending";
+
+    const newSpot = {
+      id: "ev-" + Date.now(),
+      title,
+      club,
+      type,
+      isRecurring: isRecurringMode,
+      schedule: isRecurringMode ? (schedule || "Recurring Meetup") : "",
+      eventDate: isRecurringMode ? "" : eventDate,
+      eventTime: isRecurringMode ? "" : eventTime,
+      lat,
+      lng,
+      desc,
+      status: newStatus
     };
-    say(reasons[error.code] || "GPS unavailable.");
-  }, { enableHighAccuracy:true, timeout:15000, maximumAge:10000 });
-}
 
-$("locateBtn").addEventListener("click", () => getGps());
-$("formGpsBtn").addEventListener("click", () => getGps(
-  "GPS location selected. Submit the form to send the link for approval."
-));
+    spots.unshift(newSpot);
+    document.getElementById("modal-add").classList.remove("open");
+    document.getElementById("form-event").reset();
 
-$("submitForm").addEventListener("submit", async event => {
-  event.preventDefault();
+    await saveEventsToCloud();
 
-  if (!supabase) {
-    say("Supabase is not configured. Follow the setup instructions first.");
-    return;
-  }
-  if (!selectedCoords) {
-    say("Choose a map location or use GPS before submitting.");
-    return;
-  }
-
-  const title = $("linkTitle").value.trim();
-  const url = safeUrl($("linkUrl").value.trim());
-  const club = $("linkClub").value;
-  const description = $("linkDescription").value.trim();
-
-  if (!title || title.length > 100 || !url ||
-      description.length > 1000) {
-    say("Check the title, URL (http/https), and description.");
-    return;
-  }
-
-  const lat = Number(selectedCoords[0]);
-  const lng = Number(selectedCoords[1]);
-  if (!Number.isFinite(lat) || !Number.isFinite(lng) ||
-      lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-    say("The selected map coordinates are invalid.");
-    return;
-  }
-
-  const submit = $("submitBtn");
-  submit.disabled = true;
-  submit.textContent = "SENDING...";
-
-  try {
-    const { error } = await supabase.from("jeep_links").insert({
-      title, url, club, description, lat, lng, status:"pending"
-    });
-    if (error) throw error;
-
-    $("submitForm").reset();
-    selectedCoords = null;
-    $("selectedLocation").value = "";
-    $("pinHelp").textContent = "No location selected yet.";
-    showSubmission(false);
-    say("Submission received! It will appear on the map after administrator approval.");
-  } catch (error) {
-    console.error("Submission error:", error);
-    say("Submission failed. Check the Supabase table and INSERT policy, then try again.");
-  } finally {
-    submit.disabled = false;
-    submit.textContent = "SEND FOR APPROVAL";
-  }
-});
-
-async function shareText(title, text) {
-  try {
-    if (navigator.share) {
-      await navigator.share({ title, text });
-    } else if (navigator.clipboard && window.isSecureContext) {
-      await navigator.clipboard.writeText(text);
-      say("Copied. Paste it into your message.");
+    if (isAdmin) {
+      showToast("Event Added & Live on Map!");
     } else {
-      window.prompt("Copy this message:", text);
+      showToast("Submitted! Waiting for Admin Approval before going live.");
     }
-  } catch (error) {
-    if (error.name !== "AbortError") say("Sharing unavailable. Try again.");
-  }
-}
-
-function shareMapCenter() {
-  const c = map.getCenter();
-  const coords = c.lat.toFixed(6) + "," + c.lng.toFixed(6);
-  shareText("Gulf Coast Jeep Grid",
-    "Gulf Coast Jeep Grid location: " + coords +
-    "\nhttps://www.google.com/maps?q=" + encodeURIComponent(coords));
-}
-
-$("shareBtn").addEventListener("click", shareMapCenter);
-$("shareLocationBtn").addEventListener("click", shareMapCenter);
-$("refreshBtn").addEventListener("click", loadApprovedLinks);
-
-$("resetBtn").addEventListener("click", () => {
-  map.flyTo(DEFAULT_CENTER, DEFAULT_ZOOM, { duration:0.8 });
-  say("Grid reset to the Pinellas / Tampa Bay overview.");
-});
-
-$("radarBtn").addEventListener("click", () => {
-  radarOn = !radarOn;
-  $("radarLight").classList.toggle("on", radarOn);
-  $("radarBtn").classList.toggle("active", radarOn);
-  $("radarBtn").textContent = radarOn ? "◉ RADAR: ON" : "◉ RADAR: OFF";
-  say(radarOn
-    ? "Visual radar mode enabled. No live event scanning is performed."
-    : "Radar visual mode disabled.");
-});
-
-document.querySelectorAll("[data-filter]").forEach(button => {
-  button.addEventListener("click", () => {
-    activeFilter = button.dataset.filter;
-    document.querySelectorAll("[data-filter]").forEach(item =>
-      item.classList.toggle("active", item === button));
-    renderLinks();
   });
-});
 
-// Leaflet sizing fixes for mobile browsers and orientation changes.
-function fixMapSize() { map.invalidateSize({ pan:false }); }
-window.addEventListener("load", () => {
-  setTimeout(fixMapSize, 150);
-  setTimeout(fixMapSize, 500);
-});
-window.addEventListener("resize", fixMapSize);
-window.addEventListener("orientationchange", () => setTimeout(fixMapSize, 250));
-setTimeout(fixMapSize, 150);
-setTimeout(fixMapSize, 500);
+  /********************************************************************
+   * 7. ADMIN MODE (PIN LOCK TO APPROVE / DELETE)
+   ********************************************************************/
+  document.getElementById("btn-admin").addEventListener("click", () => {
+    if (isAdmin) {
+      isAdmin = false;
+      document.getElementById("btn-admin").classList.remove("unlocked");
+      document.getElementById("admin-label").textContent = "Admin";
+      document.getElementById("chip-pending").style.display = "none";
+      if (currentFilter === "pending") currentFilter = "all";
+      showToast("Admin Mode Locked.");
+      renderAll();
+      return;
+    }
 
-loadApprovedLinks();
+    const pin = prompt("Enter Admin PIN to review pending events & manage pins:");
+    if (pin === ADMIN_PIN) {
+      isAdmin = true;
+      document.getElementById("btn-admin").classList.add("unlocked");
+      document.getElementById("admin-label").textContent = "🔓 Admin";
+      document.getElementById("chip-pending").style.display = "inline-block";
+      showToast("Admin Mode Unlocked! You can now approve or delete events.");
+      renderAll();
+    } else if (pin !== null) {
+      alert("Incorrect Admin PIN.");
+    }
+  });
 
-// Refresh approved submissions periodically while the page is open.
-if (supabase) {
-  setInterval(loadApprovedLinks, 60000);
-}
-})();
-</script>
-</body>
-</html>
+  /********************************************************************
+   * 8. FILTER CHIPS, DRAWER TOGGLE & GPS LOCATE
+   ********************************************************************/
+  document.querySelectorAll(".chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      document.querySelectorAll(".chip
