@@ -2,78 +2,195 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>JeepRadar - Pinellas & Tampa Bay</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
-    body { margin: 0; padding: 0; background: #111418; color: #fff; font-family: sans-serif; overflow: hidden; }
-    #app { display: flex; flex-direction: column; height: 100vh; }
-    header { height: 56px; background: #1b2026; border-bottom: 2px solid #ff9800; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; }
-    .brand { font-weight: 800; font-size: 1.1rem; color: #fff; }
-    .brand span { color: #ff9800; }
-    .btn { background: #242b33; border: 1px solid #333d49; color: #fff; padding: 8px 14px; border-radius: 6px; font-weight: 700; cursor: pointer; }
-    .btn-amber { background: #ff9800; color: #111418; border: none; }
+    :root {
+      --bg-dark: #111418; --bg-panel: #1b2026; --bg-card: #242b33;
+      --border: #333d49; --amber: #ff9800; --green: #4caf50;
+      --cyan: #00e5ff; --red: #ff3b30; --yellow: #ffd600;
+      --text-main: #f0f4f8; --text-muted: #9aa6b5;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body, html { width: 100%; height: 100%; background: var(--bg-dark); color: var(--text-main); font-family: sans-serif; overflow: hidden; }
+    #app { display: flex; flex-direction: column; width: 100%; height: 100vh; position: relative; }
+
+    header {
+      height: 56px; background: var(--bg-panel); border-bottom: 2px solid var(--amber);
+      display: flex; align-items: center; justify-content: space-between; padding: 0 12px; z-index: 1000;
+    }
+    .brand { font-weight: 800; font-size: 1.1rem; color: #fff; display: flex; align-items: center; gap: 6px; }
+    .brand span { color: var(--amber); }
+
+    .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); display: inline-block; margin-left: 4px; box-shadow: 0 0 6px var(--green); }
+    .sync-dot.local { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+
+    .header-actions { display: flex; align-items: center; gap: 6px; }
+    .btn {
+      background: var(--bg-card); border: 1px solid var(--border); color: var(--text-main);
+      padding: 6px 10px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer;
+    }
+    .btn-amber { background: var(--amber); border-color: var(--amber); color: #111418; font-weight: 700; }
+    .btn-admin.unlocked { border-color: var(--green); color: var(--green); }
+    .badge-count { background: var(--red); color: #fff; font-size: 0.7rem; padding: 1px 5px; border-radius: 10px; font-weight: 800; }
+
+    .filter-bar {
+      display: flex; gap: 8px; padding: 8px 12px; background: #15191e; border-bottom: 1px solid var(--border);
+      overflow-x: auto; white-space: nowrap; z-index: 1000;
+    }
+    .chip {
+      background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted);
+      padding: 5px 12px; border-radius: 18px; font-size: 0.78rem; font-weight: 600; cursor: pointer;
+    }
+    .chip.active { background: var(--amber); border-color: var(--amber); color: #111418; }
+    .chip-pending { border-color: var(--yellow); color: var(--yellow); display: none; }
+    .chip-pending.active { background: var(--yellow); color: #111418; }
+
     #map { flex: 1; width: 100%; background: #0d1013; }
-    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 3000; align-items: center; justify-content: center; }
-    .modal.open { display: flex; }
-    .modal-content { background: #1b2026; border: 1px solid #ff9800; padding: 20px; border-radius: 10px; width: 320px; }
-    .form-control { width: 100%; background: #111418; border: 1px solid #333d49; color: #fff; padding: 8px; margin-bottom: 10px; border-radius: 4px; box-sizing: border-box; }
+
+    .drawer {
+      background: var(--bg-panel); border-top: 2px solid var(--border); border-radius: 16px 16px 0 0;
+      z-index: 1000; display: flex; flex-direction: column; max-height: 40vh; transition: max-height 0.2s ease;
+    }
+    .drawer.collapsed { max-height: 40px; }
+    .drawer-header { padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+    .event-list { overflow-y: auto; padding: 10px 14px; display: flex; flex-direction: column; gap: 8px; }
+
+    .event-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 10px; cursor: pointer; }
+    .event-card.pending-card { border: 1px dashed var(--yellow); background: rgba(255, 214, 0, 0.05); }
+    .event-card h4 { font-size: 0.9rem; color: #fff; margin-bottom: 2px; }
+    .event-card p { font-size: 0.78rem; color: var(--text-muted); }
+    .card-actions { display: flex; gap: 6px; margin-top: 8px; }
+    .btn-sm { padding: 3px 8px; font-size: 0.7rem; border-radius: 4px; font-weight: 700; border: none; cursor: pointer; }
+    .btn-approve { background: var(--green); color: #000; }
+    .btn-delete { background: var(--red); color: #fff; }
+
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 3000; display: none;
+      align-items: center; justify-content: center; padding: 16px;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal { background: var(--bg-panel); border: 1px solid var(--amber); border-radius: 10px; width: 100%; max-width: 400px; padding: 16px; max-height: 90vh; overflow-y: auto; }
+    .form-group { margin-bottom: 10px; }
+    .form-group label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 3px; font-weight: 700; }
+    .form-control { width: 100%; background: var(--bg-dark); border: 1px solid var(--border); color: #fff; padding: 8px; border-radius: 6px; font-size: 0.85rem; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 6px; margin-top: 14px; }
+
+    #toast {
+      position: fixed; top: 65px; left: 50%; transform: translateX(-50%); background: #1b2026;
+      border: 1px solid var(--amber); color: #fff; padding: 8px 14px; border-radius: 6px; font-size: 0.8rem; z-index: 4000; display: none;
+    }
   </style>
 </head>
 <body>
 
 <div id="app">
   <header>
-    <div class="brand">JEEP<span>RADAR</span></div>
-    <div>
-      <button class="btn btn-amber" onclick="openSubmitModal()">+ Submit</button>
-      <button class="btn" onclick="toggleAdmin()">Admin</button>
+    <div class="brand">
+      JEEP<span>RADAR</span>
+      <span id="sync-dot" class="sync-dot local" title="Sync Status"></span>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-amber" id="btn-add-open">+ Submit</button>
+      <button class="btn" id="btn-locate">GPS</button>
+      <button class="btn btn-admin" id="btn-admin">
+        <span id="admin-label">Admin</span>
+        <span id="pending-badge" class="badge-count" style="display:none;">0</span>
+      </button>
+      <button class="btn" id="btn-cloud" title="Cloud Settings">⚙️</button>
     </div>
   </header>
+
+  <div class="filter-bar">
+    <button class="chip active" data-filter="all">All Approved</button>
+    <button class="chip" data-filter="hangout">Hangouts</button>
+    <button class="chip" data-filter="meet">Meets</button>
+    <button class="chip" data-filter="trail">Trails</button>
+    <button class="chip chip-pending" id="chip-pending" data-filter="pending">⏳ Pending</button>
+  </div>
+
   <div id="map"></div>
+
+  <div class="drawer" id="drawer">
+    <div class="drawer-header" id="drawer-toggle">
+      <span style="font-size:0.8rem; font-weight:800; color:var(--amber);">Pinellas & Tampa Bay Feed <span id="spot-count">(0)</span></span>
+      <span id="drawer-toggle-txt" style="font-size:0.75rem; color:var(--text-muted);">▼ Hide</span>
+    </div>
+    <div class="event-list" id="event-list"></div>
+  </div>
 </div>
 
+<div id="toast"></div>
+
 <!-- Submit Modal -->
-<div class="modal" id="modal-add">
-  <div class="modal-content">
-    <h3 style="color:#ff9800; margin-top:0;">Submit Meetup</h3>
-    <input type="text" id="ev-title" class="form-control" placeholder="Event Title (e.g., Sunset Meet)">
-    <input type="text" id="ev-club" class="form-control" placeholder="Club Name">
-    <div style="display:flex; justify-content:flex-end; gap:6px; margin-top:10px;">
-      <button class="btn" onclick="closeSubmitModal()">Cancel</button>
-      <button class="btn btn-amber" onclick="saveEvent()">Save</button>
+<div class="modal-backdrop" id="modal-add">
+  <div class="modal">
+    <h3 style="color:var(--amber); font-size:1rem; margin-bottom:10px;">Submit Jeep Meetup</h3>
+    <form id="form-event">
+      <input type="hidden" id="ev-lat">
+      <input type="hidden" id="ev-lng">
+      <div class="form-group">
+        <label>Title *</label>
+        <input type="text" id="ev-title" class="form-control" placeholder="e.g., Pass-a-Grille Sunset" required>
+      </div>
+      <div class="form-group">
+        <label>Club / Host *</label>
+        <input type="text" id="ev-club" class="form-control" placeholder="e.g., St. Pete Beach Jeepers" required>
+      </div>
+      <div class="form-group">
+        <label>Category</label>
+        <select id="ev-type" class="form-control">
+          <option value="hangout">Hangout (Green)</option>
+          <option value="meet">Meet & Cruise (Amber)</option>
+          <option value="trail">Trail / Sand (Cyan)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Schedule / Date *</label>
+        <input type="text" id="ev-schedule" class="form-control" placeholder="e.g., Every Friday @ Sunset" required>
+      </div>
+      <div class="form-group">
+        <label>Notes / Parking *</label>
+        <textarea id="ev-desc" class="form-control" rows="2" placeholder="Where to park..." required></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn" id="btn-add-cancel">Cancel</button>
+        <button type="submit" class="btn btn-amber">Submit</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Cloud Sync Modal -->
+<div class="modal-backdrop" id="modal-cloud">
+  <div class="modal">
+    <h3 style="color:var(--amber); font-size:1rem; margin-bottom:10px;">JSONBin.io Cloud Setup</h3>
+    <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:10px;">Connect your free JSONBin.io account so all Jeeper phones sync automatically.</p>
+    <div class="form-group">
+      <label>X-Master-Key</label>
+      <input type="password" id="cloud-key" class="form-control" placeholder="$2a$10$...">
+    </div>
+    <div class="form-group">
+      <label>Bin ID (Leave blank to auto-create)</label>
+      <input type="text" id="cloud-bin" class="form-control" placeholder="6710a8bc...">
+    </div>
+    <div style="margin-bottom:10px;">
+      <button type="button" class="btn btn-amber" id="btn-create-bin" style="width:100%;">Auto-Create New Bin</button>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" id="btn-cloud-close">Close</button>
+      <button type="button" class="btn btn-amber" id="btn-cloud-save">Save & Sync</button>
     </div>
   </div>
 </div>
 
+<!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 <script>
-  const map = L.map('map').setView([27.82, -82.68], 11);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 19 }).addTo(map);
-
-  function openSubmitModal() {
-    document.getElementById('modal-add').classList.add('open');
-  }
-
-  function closeSubmitModal() {
-    document.getElementById('modal-add').classList.remove('open');
-  }
-
-  function saveEvent() {
-    const title = document.getElementById('ev-title').value;
-    if(!title) { alert('Enter a title'); return; }
-    alert('Event saved: ' + title);
-    closeSubmitModal();
-  }
-
-  function toggleAdmin() {
-    const pin = prompt("Enter Admin PIN (1974):");
-    if(pin === "1974") {
-      alert("Admin Unlocked!");
-    } else if(pin !== null) {
-      alert("Wrong PIN");
-    }
-  }
-</script>
-</body>
-</html>
+  document.addEventListener("DOMContentLoaded", () => {
+    const ADMIN_PIN = "1974";
+    let isAdmin = false;
+    let currentFilter = "all";
+    let
