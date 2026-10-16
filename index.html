@@ -23,8 +23,8 @@
     .brand { font-weight: 800; font-size: 1.1rem; color: #fff; display: flex; align-items: center; gap: 6px; }
     .brand span { color: var(--amber); }
 
-    .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); display: inline-block; margin-left: 4px; box-shadow: 0 0 6px var(--green); }
-    .sync-dot.local { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+    .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--amber); display: inline-block; margin-left: 4px; box-shadow: 0 0 6px var(--amber); }
+    .sync-dot.cloud { background: var(--green); box-shadow: 0 0 6px var(--green); }
 
     .header-actions { display: flex; align-items: center; gap: 6px; }
     .btn {
@@ -89,7 +89,7 @@
   <header>
     <div class="brand">
       JEEP<span>RADAR</span>
-      <span id="sync-dot" class="sync-dot local" title="Sync Status"></span>
+      <span id="sync-dot" class="sync-dot" title="Local Mode"></span>
     </div>
     <div class="header-actions">
       <button class="btn btn-amber" id="btn-add-open">+ Submit</button>
@@ -193,4 +193,253 @@
     const ADMIN_PIN = "1974";
     let isAdmin = false;
     let currentFilter = "all";
-    let
+    let markersLayer = [];
+
+    const DEFAULT_SPOTS = [
+      { id: "1", title: "Pass-a-Grille Sunset Tailgate", club: "St. Pete Beach Jeepers", type: "hangout", schedule: "Weekends @ Sunset", lat: 27.6896, lng: -82.7388, desc: "South end beach parking lot lineup.", status: "approved" },
+      { id: "2", title: "St. Pete Pier Approach Staging", club: "Sunshine City Jeep Crew", type: "meet", schedule: "Every Friday 7:30 PM", lat: 27.7719, lng: -82.6288, desc: "Downtown waterfront meetup.", status: "approved" },
+      { id: "3", title: "Gandy Beach Sand Line", club: "Tampa Bay Jeep Club", type: "trail", schedule: "Open Daily", lat: 27.8732, lng: -82.5714, desc: "Waterfront sand pull-in.", status: "approved" },
+      { id: "4", title: "Courtney Campbell Causeway Ramp", club: "Tampa Bay Jeep Club", type: "hangout", schedule: "Sundays 10:00 AM", lat: 27.9691, lng: -82.6025, desc: "Bayfront meetup by boat ramp.", status: "approved" },
+      { id: "5", title: "Madeira Beach Causeway Marina Lot", club: "St. Pete Beach Jeepers", type: "meet", schedule: "Saturday Mornings", lat: 27.7995, lng: -82.7937, desc: "Intracoastal breeze meetup.", status: "approved" }
+    ];
+
+    let spots = [...DEFAULT_SPOTS];
+    const saved = localStorage.getItem("jr_spots");
+    if (saved) {
+      try { spots = JSON.parse(saved); } catch(e) {}
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.style.display = "block";
+      setTimeout(() => { t.style.display = "none"; }, 3000);
+    }
+
+    // Initialize Map
+    const map = L.map("map", { zoomControl: false }).setView([27.82, -82.68], 11);
+    L.control.zoom({ position: "right" }).addTo(map);
+
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+      subdomains: "abcd", maxZoom: 19
+    }).addTo(map);
+
+    function makePin(color, isPending = false) {
+      const border = isPending ? "2px dashed #ffd600" : "2px solid #fff";
+      return L.divIcon({
+        className: "custom-pin",
+        html: `<div style="background:${color}; width:14px; height:14px; border-radius:50%; border:${border}; box-shadow:0 0 8px ${color};"></div>`,
+        iconSize: [16, 16], iconAnchor: [8, 8]
+      });
+    }
+
+    const ICONS = {
+      hangout: makePin("#4caf50"),
+      meet: makePin("#ff9800"),
+      trail: makePin("#00e5ff"),
+      pending: makePin("#ffd600", true)
+    };
+
+    function render() {
+      markersLayer.forEach(m => map.removeLayer(m));
+      markersLayer = [];
+
+      const listEl = document.getElementById("event-list");
+      listEl.innerHTML = "";
+
+      const pendingCount = spots.filter(s => s.status === "pending").length;
+      const badge = document.getElementById("pending-badge");
+      if (pendingCount > 0) {
+        badge.style.display = "inline-block";
+        badge.textContent = pendingCount;
+      } else {
+        badge.style.display = "none";
+      }
+
+      const filtered = spots.filter(s => {
+        if (!isAdmin && s.status === "pending") return false;
+        if (currentFilter === "pending") return s.status === "pending";
+        if (s.status === "pending") return false;
+        if (currentFilter !== "all" && s.type !== currentFilter) return false;
+        return true;
+      });
+
+      document.getElementById("spot-count").textContent = `(${filtered.length})`;
+
+      filtered.forEach(spot => {
+        const isPending = spot.status === "pending";
+        const icon = isPending ? ICONS.pending : (ICONS[spot.type] || ICONS.meet);
+
+        const marker = L.marker([spot.lat, spot.lng], { icon }).addTo(map);
+        marker.bindPopup(`<b>${spot.title}</b><br>${spot.club}<br>${spot.schedule}`);
+        markersLayer.push(marker);
+
+        const card = document.createElement("div");
+        card.className = "event-card" + (isPending ? " pending-card" : "");
+        card.innerHTML = `
+          <h4>${isPending ? "⏳ [PENDING APPROVAL] " : ""}${spot.title}</h4>
+          <p><b>${spot.club}</b> • ${spot.schedule}</p>
+          <p>${spot.desc}</p>
+          ${isAdmin ? `<div class="card-actions">
+            ${isPending ? `<button class="btn-sm btn-approve" data-act="approve" data-id="${spot.id}">✓ Approve</button>` : ""}
+            <button class="btn-sm btn-delete" data-act="delete" data-id="${spot.id}">✕ Delete</button>
+          </div>` : ""}
+        `;
+
+        card.addEventListener("click", (e) => {
+          if (e.target.tagName === "BUTTON") return;
+          map.setView([spot.lat, spot.lng], 14);
+          marker.openPopup();
+        });
+
+        listEl.appendChild(card);
+      });
+
+      document.querySelectorAll("[data-act]").forEach(b => {
+        b.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const id = b.getAttribute("data-id");
+          const act = b.getAttribute("data-act");
+          if (act === "approve") {
+            spots = spots.map(s => s.id === id ? {...s, status: "approved"} : s);
+            showToast("Event Approved & Live!");
+          } else if (act === "delete") {
+            spots = spots.filter(s => s.id !== id);
+            showToast("Event Deleted.");
+          }
+          saveAndSync();
+        });
+      });
+    }
+
+    function saveAndSync() {
+      localStorage.setItem("jr_spots", JSON.stringify(spots));
+      render();
+    }
+
+    // Button Event Handlers (Safe & Protected)
+    const adminBtn = document.getElementById("btn-admin");
+    if(adminBtn) {
+      adminBtn.addEventListener("click", () => {
+        if (isAdmin) {
+          isAdmin = false;
+          adminBtn.classList.remove("unlocked");
+          document.getElementById("admin-label").textContent = "Admin";
+          document.getElementById("chip-pending").style.display = "none";
+          if (currentFilter === "pending") currentFilter = "all";
+          showToast("Admin Locked.");
+          render();
+          return;
+        }
+        const pin = prompt("Enter Admin PIN (1974):");
+        if (pin === ADMIN_PIN) {
+          isAdmin = true;
+          adminBtn.classList.add("unlocked");
+          document.getElementById("admin-label").textContent = "🔓 Admin";
+          document.getElementById("chip-pending").style.display = "inline-block";
+          showToast("Admin Unlocked!");
+          render();
+        } else if (pin !== null) {
+          alert("Incorrect PIN.");
+        }
+      });
+    }
+
+    document.getElementById("btn-add-open").addEventListener("click", () => {
+      const c = map.getCenter();
+      document.getElementById("ev-lat").value = c.lat.toFixed(4);
+      document.getElementById("ev-lng").value = c.lng.toFixed(4);
+      document.getElementById("modal-add").classList.add("open");
+    });
+
+    document.getElementById("btn-add-cancel").addEventListener("click", () => {
+      document.getElementById("modal-add").classList.remove("open");
+    });
+
+    document.getElementById("form-event").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const newSpot = {
+        id: "ev-" + Date.now(),
+        title: document.getElementById("ev-title").value,
+        club: document.getElementById("ev-club").value,
+        type: document.getElementById("ev-type").value,
+        schedule: document.getElementById("ev-schedule").value,
+        lat: parseFloat(document.getElementById("ev-lat").value),
+        lng: parseFloat(document.getElementById("ev-lng").value),
+        desc: document.getElementById("ev-desc").value,
+        status: isAdmin ? "approved" : "pending"
+      };
+
+      spots.unshift(newSpot);
+      document.getElementById("modal-add").classList.remove("open");
+      document.getElementById("form-event").reset();
+      saveAndSync();
+      showToast(isAdmin ? "Meetup Added Live!" : "Submitted for Admin Approval!");
+    });
+
+    document.querySelectorAll(".chip").forEach(chip => {
+      chip.addEventListener("click", () => {
+        document.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
+        chip.classList.add("active");
+        currentFilter = chip.getAttribute("data-filter");
+        render();
+      });
+    });
+
+    document.getElementById("drawer-toggle").addEventListener("click", () => {
+      const d = document.getElementById("drawer");
+      d.classList.toggle("collapsed");
+      document.getElementById("drawer-toggle-txt").textContent = d.classList.contains("collapsed") ? "▲ Show" : "▼ Hide";
+      setTimeout(() => map.invalidateSize(), 200);
+    });
+
+    document.getElementById("btn-locate").addEventListener("click", () => {
+      if (!navigator.geolocation) { showToast("GPS not supported."); return; }
+      navigator.geolocation.getCurrentPosition(pos => {
+        map.setView([pos.coords.latitude, pos.coords.longitude], 13);
+        showToast("Located!");
+      });
+    });
+
+    // Cloud modal controls
+    document.getElementById("btn-cloud").addEventListener("click", () => {
+      document.getElementById("cloud-key").value = localStorage.getItem("jr_bin_key") || "";
+      document.getElementById("cloud-bin").value = localStorage.getItem("jr_bin_id") || "";
+      document.getElementById("modal-cloud").classList.add("open");
+    });
+
+    document.getElementById("btn-cloud-close").addEventListener("click", () => {
+      document.getElementById("modal-cloud").classList.remove("open");
+    });
+
+    document.getElementById("btn-create-bin").addEventListener("click", async () => {
+      const key = document.getElementById("cloud-key").value.trim();
+      if (!key) { alert("Enter X-Master-Key first."); return; }
+      try {
+        const res = await fetch("https://api.jsonbin.io/v3/b", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-Master-Key": key, "X-Bin-Name": "JeepRadar" },
+          body: JSON.stringify({ spots: spots })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          document.getElementById("cloud-bin").value = data.metadata.id;
+          localStorage.setItem("jr_bin_key", key);
+          localStorage.setItem("jr_bin_id", data.metadata.id);
+          showToast("Bin Created Successfully!");
+        }
+      } catch (e) { alert("Error creating bin."); }
+    });
+
+    document.getElementById("btn-cloud-save").addEventListener("click", () => {
+      localStorage.setItem("jr_bin_key", document.getElementById("cloud-key").value.trim());
+      localStorage.setItem("jr_bin_id", document.getElementById("cloud-bin").value.trim());
+      document.getElementById("modal-cloud").classList.remove("open");
+      showToast("Cloud Settings Saved!");
+    });
+
+    render();
+  });
+</script>
+</body>
+</html>
